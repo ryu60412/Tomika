@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>トミカデザans-serif;<title>トミカデザイナー v3</title>
+<title>トミカデザイナー v4 - 働く車スペシャル</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: system-ui, sans-serif;
     background: linear-gradient(135deg, #1a2a3a, #2c4a6a);
     color: #fff; min-height: 100vh;
   }
@@ -25,7 +29,7 @@
   .step-pill {
     flex: 0 0 auto; padding: 6px 12px; border-radius: 20px;
     background: rgba(255,255,255,.1); font-size: 12px;
-    border: 2px solid transparent;
+    border: 2px solid transparent; white-space: nowrap;
   }
   .step-pill.active { background: #ff6b35; border-color: #fff; font-weight: 700; }
   .step-pill.done { background: #06d6a0; }
@@ -50,7 +54,8 @@
     background: rgba(0,0,0,.4); border-radius: 12px;
     padding: 16px; max-height: 80vh; overflow-y: auto;
   }
-  .panel h2 { margin: 0 0 12px; font-size: 16px; color: #ff6b35; }
+  .panel h2 { margin: 0 0 8px; font-size: 16px; color: #ff6b35; }
+  .panel h3 { margin: 14px 0 6px; font-size: 13px; color: #ffd166; }
   .panel p.hint { font-size: 12px; color: #ccc; margin: 0 0 12px; }
   .nav-btns {
     display: flex; justify-content: space-between; margin-top: 16px; gap: 8px;
@@ -63,17 +68,17 @@
   .btn-next { background: #ff6b35; color: #fff; }
   .btn-finish { background: #06d6a0; color: #fff; }
   .card-grid {
-    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
   }
   .card {
     background: rgba(255,255,255,.08); border: 2px solid transparent;
-    padding: 10px; border-radius: 8px; cursor: pointer;
+    padding: 8px 4px; border-radius: 8px; cursor: pointer;
     text-align: center; transition: .15s;
   }
   .card:hover { background: rgba(255,255,255,.15); }
   .card.selected { border-color: #ff6b35; background: rgba(255,107,53,.2); }
-  .card-icon { font-size: 26px; }
-  .card-label { font-size: 12px; margin-top: 4px; }
+  .card-icon { font-size: 24px; }
+  .card-label { font-size: 11px; margin-top: 2px; }
   .color-grid {
     display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px;
   }
@@ -100,7 +105,7 @@
 <body>
 
 <header>
-  <h1>🚗 トミカデザイナー v3</h1>
+  <h1>🚧 トミカデザイナー v4 - 働く車スペシャル</h1>
   <div class="btns">
     <button onclick="exportPNG()">PNG保存</button>
     <button onclick="exportSVG()">SVG保存</button>
@@ -126,331 +131,423 @@
 </main>
 
 <script>
-/* ====== ステップ定義 ====== */
+/* ====== ステップ ====== */
 const STEPS = [
   { id:'body',  label:'① 車種' },
   { id:'color', label:'② カラー' },
-  { id:'glass', label:'③ ガラス' },
-  { id:'wheel', label:'④ ホイール' },
-  { id:'light', label:'⑤ ライト' },
-  { id:'deco',  label:'⑥ 装飾' },
-  { id:'decal', label:'⑦ デカール' },
-  { id:'finish',label:'⑧ 完成' }
+  { id:'wheel', label:'③ ホイール' },
+  { id:'extra', label:'④ 装備' },
+  { id:'decal', label:'⑤ ロゴ・文字' },
+  { id:'finish',label:'⑥ 完成' }
 ];
 let currentStep = 0;
 
-/* ====== 状態（長さスライダーは廃止） ====== */
+/* ====== 状態 ====== */
 const state = {
   bodyType: null,
-  bodyColor: '#c0392b', metallic: true,
-  windowTint: '#3a4a55', tintLevel: 0.85,
-  wheelStyle: 'spoke5', hubColor: '#cccccc', tireColor: '#1a1a1a',
-  headColor: '#fff7c2', tailColor: '#ff2222', headOn: true,
-  roofDeco: 'none', stripe: false, stripeColor:'#ffffff',
-  decalText: '', decalColor: '#ffffff', decalSize: 28,
+  bodyColor: '#e63946',
+  subColor: '#ffffff',
+  wheelStyle: 'truck6', hubColor: '#dddddd',
+  extra: 'auto',     // auto = 車種ごとの標準装備
+  beaconOn: true,    // 回転灯
+  decalText: '',
+  decalColor: '#222222'
 };
 
-/* ====== 車種定義（リアルなシルエット） ====== */
+/* ====== 車種カテゴリ ====== */
+const CATEGORIES = {
+  '🚨 緊急車両': ['police','firetruck','ambulance'],
+  '🏗️ 建設機械': ['excavator','bulldozer','crane','dumptruck','mixer'],
+  '🚛 大型車': ['cargotruck','tanker','garbage'],
+  '🚌 公共': ['bus','schoolbus'],
+  '🚜 特殊': ['tractor','mailtruck']
+};
+
+/* ====== 車種（やや太め・ずんぐり） ====== */
 const CARS = {
-  sedan: {
-    icon: '🚗', label: 'セダン',
-    // ベース座標：地面y=320、中央x=400
-    body: () => `
-      M 130 310
-      L 130 280 Q 130 268 142 264
-      L 175 252
-      L 215 232
-      L 260 218
-      L 305 198          /* 風防下部 */
-      L 335 158          /* 風防上 */
-      L 480 158          /* ルーフ */
-      L 530 200          /* リアガラス下端 */
-      L 590 218
-      L 640 230
-      L 668 248
-      Q 678 254 678 264
-      L 678 310 Z`,
-    window: () => `
-      M 332 175 L 482 175 L 522 205 L 312 205 Z`,
-    pillarX: 405, // Bピラー
-    wheelArchF: { x:212, y:300, r:55 },
-    wheelArchR: { x:600, y:300, r:55 },
-    wheelF: { x:212, y:296, r:32 },
-    wheelR: { x:600, y:296, r:32 },
-    grille: () => `<rect x="135" y="270" width="14" height="22" rx="2" fill="#222"/>
-                   <line x1="139" y1="275" x2="148" y2="275" stroke="#666" stroke-width="1"/>
-                   <line x1="139" y1="282" x2="148" y2="282" stroke="#666" stroke-width="1"/>
-                   <line x1="139" y1="289" x2="148" y2="289" stroke="#666" stroke-width="1"/>`,
-    headlight: { x:155, y:262, rx:14, ry:8 },
-    taillight: { x:660, y:255, rx:10, ry:7 },
-    doorHandle: [{x:340,y:235},{x:470,y:235}],
-    mirror: { x:330, y:200 },
-    charLine: 'M 145 268 Q 400 280 670 268',
+  /* 緊急車両 ============================ */
+  police: {
+    icon:'🚓', label:'パトカー',
+    defaultColor:'#1a1a1a', defaultSub:'#ffffff',
+    defaultDecal:'POLICE',
+    body: () => `M 130 310 L 130 270 Q 130 258 142 254
+      L 175 244 L 220 232 L 270 220 L 310 195 L 345 158
+      L 490 158 L 525 195 L 560 218 L 615 230 L 660 244
+      Q 678 250 678 262 L 678 310 Z`,
+    window: () => `M 342 175 L 488 175 L 522 220 L 312 220 Z`,
+    pillars: [410],
+    wheelF:{x:215,y:298,r:36}, wheelR:{x:600,y:298,r:36},
+    archF:{x:215,y:302,r:60}, archR:{x:600,y:302,r:60},
+    headlight:{x:148,y:258}, taillight:{x:665,y:255},
+    grille:{x:135,y:268,w:14,h:24},
+    doorHandles:[{x:345,y:228},{x:475,y:228}],
+    mirror:{x:330,y:200},
+    roofItem:'siren', sideStripe:'middle',
+    bodyStyle:'sedan'
   },
-  suv: {
-    icon: '🚙', label: 'SUV',
-    body: () => `
-      M 120 310
-      L 120 268 Q 120 256 130 252
-      L 160 240
-      L 200 230
-      L 245 222
-      L 280 180          /* 風防 */
-      L 305 138
-      L 510 138          /* 高いルーフ */
-      L 540 175
-      L 555 222
-      L 605 232
-      L 655 244
-      L 678 254
-      Q 688 258 688 268
-      L 688 310 Z`,
-    window: () => `
-      M 302 155 L 512 155 L 545 220 L 285 220 Z`,
-    pillarX: 405,
-    wheelArchF: { x:215, y:300, r:62 },
-    wheelArchR: { x:605, y:300, r:62 },
-    wheelF: { x:215, y:292, r:40 },
-    wheelR: { x:605, y:292, r:40 },
-    grille: () => `<rect x="125" y="265" width="18" height="30" rx="3" fill="#1a1a1a"/>
-                   <line x1="129" y1="272" x2="142" y2="272" stroke="#666" stroke-width="1.5"/>
-                   <line x1="129" y1="280" x2="142" y2="280" stroke="#666" stroke-width="1.5"/>
-                   <line x1="129" y1="288" x2="142" y2="288" stroke="#666" stroke-width="1.5"/>`,
-    headlight: { x:148, y:258, rx:13, ry:9 },
-    taillight: { x:670, y:250, rx:11, ry:9 },
-    doorHandle: [{x:340,y:215},{x:470,y:215}],
-    mirror: { x:300, y:180 },
-    charLine: 'M 135 260 Q 400 270 680 258',
+  firetruck: {
+    icon:'🚒', label:'消防車',
+    defaultColor:'#c8201a', defaultSub:'#ffffff',
+    defaultDecal:'FIRE',
+    body: () => `M 95 310 L 95 270 Q 95 258 108 254
+      L 135 246 L 165 235 L 200 180 L 215 130
+      L 340 130 L 360 180 L 360 235
+      L 380 235 L 380 145 L 700 145 L 700 310 Z`,
+    window: () => `M 218 148 L 338 148 L 358 220 L 210 220 Z`,
+    pillars:[280],
+    wheelF:{x:190,y:298,r:38}, wheelR:{x:585,y:298,r:38},
+    archF:{x:190,y:302,r:62}, archR:{x:585,y:302,r:62},
+    headlight:{x:108,y:254}, taillight:{x:692,y:175},
+    grille:{x:98,y:262,w:22,h:36},
+    doorHandles:[{x:280,y:218}],
+    mirror:{x:215,y:155},
+    roofItem:'fireLadder', sideStripe:'none',
+    bodyStyle:'truck',
+    accessories:'fireGear'
   },
-  sports: {
-    icon: '🏎️', label: 'スポーツ',
-    body: () => `
-      M 110 310
-      L 110 290 Q 110 280 122 278
-      L 165 268
-      L 220 256
-      L 285 240
-      L 340 210          /* 低いウィンドシールド */
-      L 380 175
-      L 480 175          /* 低いルーフ */
-      L 540 205
-      L 600 230
-      L 650 246
-      L 685 260
-      Q 695 264 695 274
-      L 695 310 Z`,
-    window: () => `
-      M 378 190 L 482 190 L 535 225 L 348 225 Z`,
-    pillarX: 430,
-    wheelArchF: { x:225, y:300, r:58 },
-    wheelArchR: { x:610, y:300, r:58 },
-    wheelF: { x:225, y:294, r:36 },
-    wheelR: { x:610, y:294, r:36 },
-    grille: () => `<rect x="115" y="285" width="14" height="16" rx="2" fill="#000"/>
-                   <line x1="118" y1="290" x2="127" y2="290" stroke="#444" stroke-width="1"/>
-                   <line x1="118" y1="295" x2="127" y2="295" stroke="#444" stroke-width="1"/>`,
-    headlight: { x:140, y:280, rx:18, ry:6 },
-    taillight: { x:670, y:268, rx:14, ry:6 },
-    doorHandle: [{x:400,y:255}],
-    mirror: { x:370, y:215 },
-    charLine: 'M 125 280 Q 400 295 685 275',
+  ambulance: {
+    icon:'🚑', label:'救急車',
+    defaultColor:'#ffffff', defaultSub:'#d62828',
+    defaultDecal:'AMBULANCE',
+    body: () => `M 115 310 L 115 268 Q 115 256 128 252
+      L 155 244 L 185 230 L 215 150 L 250 130
+      L 660 130 L 685 140 L 698 168 L 698 310 Z`,
+    window: () => `M 248 148 L 290 148 L 290 215 L 218 215 Z
+                   M 310 160 L 660 160 L 660 215 L 310 215 Z`,
+    pillars:[300, 460, 600],
+    wheelF:{x:210,y:298,r:34}, wheelR:{x:610,y:298,r:34},
+    archF:{x:210,y:302,r:58}, archR:{x:610,y:302,r:58},
+    headlight:{x:140,y:258}, taillight:{x:688,y:185},
+    grille:{x:120,y:265,w:16,h:25},
+    doorHandles:[{x:280,y:225},{x:560,y:225}],
+    mirror:{x:240,y:160},
+    roofItem:'siren', sideStripe:'cross',
+    bodyStyle:'van'
   },
-  truck: {
-    icon: '🚚', label: 'トラック',
-    body: () => `
-      M 100 310
-      L 100 280 Q 100 270 110 268
-      L 130 262
-      L 160 252
-      L 195 235
-      L 220 175          /* キャビン前 */
-      L 230 130
-      L 340 130          /* キャビン上 */
-      L 360 175
-      L 360 235          /* キャビン後ろ */
-      L 380 235
-      L 380 130          /* 荷台前壁 */
-      L 700 130          /* 荷台上 */
-      L 700 310 Z`,
-    window: () => `
-      M 232 148 L 338 148 L 358 218 L 226 218 Z`,
-    pillarX: 295,
-    wheelArchF: { x:200, y:300, r:60 },
-    wheelArchR: { x:580, y:300, r:60 },
-    wheelF: { x:200, y:295, r:38 },
-    wheelR: { x:580, y:295, r:38 },
-    grille: () => `<rect x="105" y="260" width="20" height="40" rx="2" fill="#1a1a1a"/>
-                   ${Array.from({length:5}).map((_,i)=>`<line x1="108" y1="${268+i*7}" x2="122" y2="${268+i*7}" stroke="#666" stroke-width="1.5"/>`).join('')}`,
-    headlight: { x:120, y:252, rx:14, ry:8 },
-    taillight: { x:690, y:155, rx:8, ry:10 },
-    doorHandle: [{x:280, y:215}],
-    mirror: { x:225, y:160 },
-    charLine: '',
+
+  /* 建設機械 ============================ */
+  excavator: {
+    icon:'🚜', label:'ショベルカー',
+    defaultColor:'#ffb703', defaultSub:'#1a1a1a',
+    defaultDecal:'',
+    body: () => `M 180 310 L 180 240 L 250 240 L 250 175
+      L 300 145 L 420 145 L 450 175 L 450 245 L 480 245
+      L 480 310 Z`,
+    window: () => `M 305 160 L 415 160 L 440 220 L 280 220 Z`,
+    pillars:[360],
+    wheelF:{x:230,y:300,r:36}, wheelR:{x:430,y:300,r:36},
+    archF:{x:230,y:302,r:55}, archR:{x:430,y:302,r:55},
+    headlight:{x:185,y:250}, taillight:{x:475,y:250},
+    grille:{x:185,y:268,w:10,h:20},
+    doorHandles:[],
+    mirror:{x:300,y:165},
+    accessories:'shovelArm',
+    crawlers: true,
+    bodyStyle:'construction'
   },
-  van: {
-    icon: '🚐', label: 'バン',
-    body: () => `
-      M 115 310
-      L 115 270 Q 115 258 128 254
-      L 155 248
-      L 185 232
-      L 215 150          /* 急なAピラー */
-      L 250 125
-      L 660 125          /* 長い平らな屋根 */
-      L 685 135
-      L 698 168
-      L 698 310 Z`,
-    window: () => `
-      M 248 142 L 658 142 L 658 215 L 218 215 Z`,
-    pillarX: 360,
-    pillarX2: 500,
-    wheelArchF: { x:210, y:300, r:55 },
-    wheelArchR: { x:610, y:300, r:55 },
-    wheelF: { x:210, y:295, r:34 },
-    wheelR: { x:610, y:295, r:34 },
-    grille: () => `<rect x="120" y="265" width="16" height="25" rx="2" fill="#1a1a1a"/>`,
-    headlight: { x:140, y:258, rx:12, ry:8 },
-    taillight: { x:688, y:185, rx:6, ry:14 },
-    doorHandle: [{x:280, y:230},{x:420, y:230},{x:560, y:230}],
-    mirror: { x:240, y:160 },
-    charLine: 'M 130 262 L 690 262',
+  bulldozer: {
+    icon:'🚜', label:'ブルドーザー',
+    defaultColor:'#ffb703', defaultSub:'#1a1a1a',
+    defaultDecal:'',
+    body: () => `M 220 310 L 220 230 L 270 230 L 270 170
+      L 320 145 L 430 145 L 460 170 L 460 240
+      L 540 240 L 540 310 Z`,
+    window: () => `M 325 160 L 425 160 L 450 220 L 305 220 Z`,
+    pillars:[380],
+    wheelF:{x:285,y:300,r:34}, wheelR:{x:470,y:300,r:34},
+    archF:{x:285,y:302,r:52}, archR:{x:470,y:302,r:52},
+    headlight:{x:225,y:250}, taillight:{x:535,y:250},
+    grille:{x:225,y:268,w:10,h:18},
+    doorHandles:[],
+    mirror:{x:315,y:165},
+    accessories:'bulldozerBlade',
+    crawlers: true,
+    bodyStyle:'construction'
   },
+  crane: {
+    icon:'🏗️', label:'クレーン車',
+    defaultColor:'#fb8500', defaultSub:'#1a1a1a',
+    defaultDecal:'CRANE',
+    body: () => `M 100 310 L 100 270 Q 100 258 113 254
+      L 140 246 L 170 235 L 200 175 L 215 145
+      L 320 145 L 340 175 L 340 235 L 700 235 L 700 310 Z`,
+    window: () => `M 218 158 L 318 158 L 338 220 L 210 220 Z`,
+    pillars:[270],
+    wheelF:{x:200,y:298,r:36}, wheelR:{x:430,y:298,r:36}, wheelR2:{x:560,y:298,r:36}, wheelR3:{x:670,y:298,r:36},
+    archF:{x:200,y:302,r:58}, archR:{x:430,y:302,r:58},
+    headlight:{x:113,y:254}, taillight:{x:695,y:248},
+    grille:{x:103,y:262,w:18,h:30},
+    doorHandles:[{x:270,y:215}],
+    mirror:{x:215,y:155},
+    accessories:'craneArm',
+    bodyStyle:'truck'
+  },
+  dumptruck: {
+    icon:'🚚', label:'ダンプカー',
+    defaultColor:'#f4a261', defaultSub:'#1a1a1a',
+    defaultDecal:'',
+    body: () => `M 100 310 L 100 270 Q 100 258 113 254
+      L 140 246 L 170 235 L 200 175 L 215 145
+      L 320 145 L 340 175 L 340 235
+      L 360 235 L 360 160 L 700 160 L 720 200 L 720 240 L 360 240 L 360 310 Z`,
+    window: () => `M 218 158 L 318 158 L 338 220 L 210 220 Z`,
+    pillars:[270],
+    wheelF:{x:200,y:298,r:38}, wheelR:{x:480,y:298,r:38}, wheelR2:{x:600,y:298,r:38},
+    archF:{x:200,y:302,r:60}, archR:{x:480,y:302,r:60}, archR2:{x:600,y:302,r:60},
+    headlight:{x:113,y:254}, taillight:{x:715,y:200},
+    grille:{x:103,y:262,w:18,h:30},
+    doorHandles:[{x:270,y:215}],
+    mirror:{x:215,y:155},
+    bodyStyle:'truck',
+    accessories:'dumpBed'
+  },
+  mixer: {
+    icon:'🚛', label:'ミキサー車',
+    defaultColor:'#e76f51', defaultSub:'#ffffff',
+    defaultDecal:'CONCRETE',
+    body: () => `M 100 310 L 100 270 Q 100 258 113 254
+      L 140 246 L 170 235 L 200 175 L 215 145
+      L 320 145 L 340 175 L 340 235 L 700 235 L 700 310 Z`,
+    window: () => `M 218 158 L 318 158 L 338 220 L 210 220 Z`,
+    pillars:[270],
+    wheelF:{x:200,y:298,r:36}, wheelR:{x:460,y:298,r:36}, wheelR2:{x:580,y:298,r:36}, wheelR3:{x:680,y:298,r:36},
+    archF:{x:200,y:302,r:58}, archR:{x:460,y:302,r:58},
+    headlight:{x:113,y:254}, taillight:{x:695,y:248},
+    grille:{x:103,y:262,w:18,h:30},
+    doorHandles:[{x:270,y:215}],
+    mirror:{x:215,y:155},
+    accessories:'mixerDrum',
+    bodyStyle:'truck'
+  },
+
+  /* 大型車 ============================ */
+  cargotruck: {
+    icon:'🚚', label:'トラック',
+    defaultColor:'#457b9d', defaultSub:'#ffffff',
+    defaultDecal:'CARGO',
+    body: () => `M 100 310 L 100 270 Q 100 258 113 254
+      L 140 246 L 170 235 L 200 175 L 215 145
+      L 320 145 L 340 175 L 340 235
+      L 360 235 L 360 140 L 720 140 L 720 310 Z`,
+    window: () => `M 218 158 L 318 158 L 338 220 L 210 220 Z`,
+    pillars:[270],
+    wheelF:{x:200,y:298,r:38}, wheelR:{x:580,y:298,r:38}, wheelR2:{x:680,y:298,r:38},
+    archF:{x:200,y:302,r:60}, archR:{x:580,y:302,r:60}, archR2:{x:680,y:302,r:60},
+    headlight:{x:113,y:254}, taillight:{x:715,y:175},
+    grille:{x:103,y:262,w:18,h:30},
+    doorHandles:[{x:270,y:215}],
+    mirror:{x:215,y:155},
+    bodyStyle:'truck'
+  },
+  tanker: {
+    icon:'🛢️', label:'タンクローリー',
+    defaultColor:'#c0c0c0', defaultSub:'#d62828',
+    defaultDecal:'FUEL',
+    body: () => `M 100 310 L 100 270 Q 100 258 113 254
+      L 140 246 L 170 235 L 200 175 L 215 145
+      L 320 145 L 340 175 L 340 235 L 700 235 L 700 310 Z`,
+    window: () => `M 218 158 L 318 158 L 338 220 L 210 220 Z`,
+    pillars:[270],
+    wheelF:{x:200,y:298,r:36}, wheelR:{x:460,y:298,r:36}, wheelR2:{x:580,y:298,r:36}, wheelR3:{x:680,y:298,r:36},
+    archF:{x:200,y:302,r:58}, archR:{x:460,y:302,r:58},
+    headlight:{x:113,y:254}, taillight:{x:695,y:248},
+    grille:{x:103,y:262,w:18,h:30},
+    doorHandles:[{x:270,y:215}],
+    mirror:{x:215,y:155},
+    accessories:'tankerTank',
+    bodyStyle:'truck'
+  },
+  garbage: {
+    icon:'🚛', label:'ゴミ収集車',
+    defaultColor:'#2a9d8f', defaultSub:'#1a1a1a',
+    defaultDecal:'CLEAN',
+    body: () => `M 100 310 L 100 270 Q 100 258 113 254
+      L 140 246 L 170 235 L 200 175 L 215 145
+      L 320 145 L 340 175 L 340 235
+      L 360 235 L 360 155 L 690 155 L 720 195 L 720 310 Z`,
+    window: () => `M 218 158 L 318 158 L 338 220 L 210 220 Z`,
+    pillars:[270],
+    wheelF:{x:200,y:298,r:38}, wheelR:{x:540,y:298,r:38}, wheelR2:{x:660,y:298,r:38},
+    archF:{x:200,y:302,r:60}, archR:{x:540,y:302,r:60}, archR2:{x:660,y:302,r:60},
+    headlight:{x:113,y:254}, taillight:{x:715,y:200},
+    grille:{x:103,y:262,w:18,h:30},
+    doorHandles:[{x:270,y:215}],
+    mirror:{x:215,y:155},
+    bodyStyle:'truck'
+  },
+
+  /* 公共 ============================ */
   bus: {
-    icon: '🚌', label: 'バス',
-    body: () => `
-      M 95 310
-      L 95 250 Q 95 238 108 234
-      L 130 228
-      L 145 110          /* 真っ直ぐ立ち上がる */
-      L 165 100
-      L 695 100          /* 長い平らな屋根 */
-      L 705 115
-      L 705 310 Z`,
-    window: () => `
-      M 162 118 L 700 118 L 700 200 L 142 200 Z`,
-    pillarX: 280,
-    pillarX2: 420,
-    pillarX3: 560,
-    wheelArchF: { x:195, y:300, r:55 },
-    wheelArchR: { x:620, y:300, r:55 },
-    wheelF: { x:195, y:295, r:36 },
-    wheelR: { x:620, y:295, r:36 },
-    grille: () => `<rect x="100" y="245" width="14" height="22" rx="2" fill="#1a1a1a"/>`,
-    headlight: { x:125, y:248, rx:10, ry:7 },
-    taillight: { x:697, y:225, rx:5, ry:12 },
-    doorHandle: [],
-    mirror: { x:155, y:130 },
-    charLine: '',
+    icon:'🚌', label:'路線バス',
+    defaultColor:'#f4a261', defaultSub:'#1a3a52',
+    defaultDecal:'BUS',
+    body: () => `M 95 310 L 95 250 Q 95 238 108 234
+      L 130 228 L 145 110 L 165 100
+      L 695 100 L 705 115 L 705 310 Z`,
+    window: () => `M 162 118 L 250 118 L 250 200 L 142 200 Z
+                   M 270 118 L 360 118 L 360 200 L 270 200 Z
+                   M 380 118 L 470 118 L 470 200 L 380 200 Z
+                   M 490 118 L 580 118 L 580 200 L 490 200 Z
+                   M 600 118 L 700 118 L 700 200 L 600 200 Z`,
+    pillars:[],
+    wheelF:{x:195,y:298,r:38}, wheelR:{x:625,y:298,r:38},
+    archF:{x:195,y:302,r:60}, archR:{x:625,y:302,r:60},
+    headlight:{x:122,y:248}, taillight:{x:697,y:225},
+    grille:{x:100,y:240,w:14,h:25},
+    doorHandles:[],
+    mirror:{x:158,y:130},
+    bodyStyle:'bus'
   },
-  police: { extends: 'sedan', icon: '🚓', label: 'パトカー', _bodyColor:'#000000', _twoTone:'#ffffff', _decal:'POLICE', _roofDeco:'siren' },
-  fire:   { extends: 'truck', icon: '🚒', label: '消防車', _bodyColor:'#c8201a', _decal:'FIRE', _roofDeco:'ladder' },
-  taxi:   { extends: 'sedan', icon: '🚕', label: 'タクシー', _bodyColor:'#ffcc00', _decal:'TAXI', _roofDeco:'siren' },
+  schoolbus: {
+    icon:'🚌', label:'スクールバス',
+    defaultColor:'#ffd60a', defaultSub:'#1a1a1a',
+    defaultDecal:'SCHOOL BUS',
+    body: () => `M 95 310 L 95 250 Q 95 238 108 234
+      L 145 220 L 175 110 L 195 100
+      L 695 100 L 705 115 L 705 310 Z`,
+    window: () => `M 192 118 L 260 118 L 260 195 L 175 195 Z
+                   M 280 118 L 360 118 L 360 195 L 280 195 Z
+                   M 380 118 L 460 118 L 460 195 L 380 195 Z
+                   M 480 118 L 560 118 L 560 195 L 480 195 Z
+                   M 580 118 L 660 118 L 660 195 L 580 195 Z`,
+    pillars:[],
+    wheelF:{x:215,y:298,r:38}, wheelR:{x:625,y:298,r:38},
+    archF:{x:215,y:302,r:60}, archR:{x:625,y:302,r:60},
+    headlight:{x:108,y:262}, taillight:{x:697,y:235},
+    grille:{x:100,y:248,w:14,h:25},
+    doorHandles:[],
+    mirror:{x:185,y:140},
+    bodyStyle:'bus',
+    accessories:'busStripe'
+  },
+
+  /* 特殊 ============================ */
+  tractor: {
+    icon:'🚜', label:'トラクター',
+    defaultColor:'#06a77d', defaultSub:'#ffd60a',
+    defaultDecal:'',
+    body: () => `M 220 310 L 220 245 L 280 245 L 280 195
+      L 310 165 L 410 165 L 440 195 L 440 245
+      L 510 245 L 510 310 Z`,
+    window: () => `M 312 178 L 408 178 L 435 232 L 290 232 Z`,
+    pillars:[370],
+    wheelF:{x:265,y:300,r:28}, wheelR:{x:470,y:300,r:55},
+    archF:{x:265,y:302,r:42}, archR:{x:470,y:302,r:75},
+    headlight:{x:225,y:255}, taillight:{x:505,y:255},
+    grille:{x:222,y:270,w:12,h:18},
+    doorHandles:[],
+    mirror:{x:305,y:175},
+    bigRearWheels: true,
+    bodyStyle:'tractor'
+  },
+  mailtruck: {
+    icon:'📮', label:'郵便車',
+    defaultColor:'#d62828', defaultSub:'#ffffff',
+    defaultDecal:'POST',
+    body: () => `M 130 310 L 130 268 Q 130 256 143 252
+      L 170 244 L 200 232 L 225 175 L 250 150
+      L 600 150 L 625 175 L 670 235 L 690 250
+      Q 700 254 700 264 L 700 310 Z`,
+    window: () => `M 252 162 L 320 162 L 320 220 L 232 220 Z
+                   M 340 162 L 600 162 L 620 220 L 340 220 Z`,
+    pillars:[330],
+    wheelF:{x:220,y:298,r:32}, wheelR:{x:620,y:298,r:32},
+    archF:{x:220,y:302,r:54}, archR:{x:620,y:302,r:54},
+    headlight:{x:148,y:258}, taillight:{x:685,y:255},
+    grille:{x:135,y:268,w:14,h:22},
+    doorHandles:[{x:290,y:230}],
+    mirror:{x:248,y:170},
+    bodyStyle:'van'
+  }
 };
 
-const PALETTE = ['#c0392b','#e67e22','#f1c40f','#27ae60','#16a085','#2980b9','#8e44ad','#34495e','#000000','#ffffff','#bdc3c7','#d35400'];
+const PALETTE = ['#e63946','#c8201a','#fb8500','#ffb703','#ffd60a','#06a77d','#2a9d8f','#1a3a52','#457b9d','#000000','#ffffff','#c0c0c0'];
 
-/* ====== ステッパー描画 ====== */
+/* ====== ステッパー ====== */
 function renderStepper() {
   document.getElementById('stepper').innerHTML = STEPS.map((s,i)=>
     `<div class="step-pill ${i===currentStep?'active':''} ${i<currentStep?'done':''}">${s.label}</div>`
   ).join('');
 }
 
-/* ====== パネル描画 ====== */
+/* ====== パネル ====== */
 function renderPanel() {
   const step = STEPS[currentStep];
   const panel = document.getElementById('panel');
   let html = '';
 
   if (step.id === 'body') {
-    html = `<h2>車種を選ぼう</h2><p class="hint">まずは車のタイプを選択してください。</p>
-      <div class="card-grid">${Object.entries(CARS).map(([k,c])=>`
-        <div class="card ${state.bodyType===k?'selected':''}" onclick="selectBody('${k}')">
+    html = `<h2>働く車を選ぼう！</h2><p class="hint">15種類のラインナップから選択してください。</p>`;
+    for (const [cat, list] of Object.entries(CATEGORIES)) {
+      html += `<h3>${cat}</h3><div class="card-grid">`;
+      list.forEach(k => {
+        const c = CARS[k];
+        html += `<div class="card ${state.bodyType===k?'selected':''}" onclick="selectBody('${k}')">
           <div class="card-icon">${c.icon}</div>
           <div class="card-label">${c.label}</div>
-        </div>`).join('')}</div>`;
+        </div>`;
+      });
+      html += `</div>`;
+    }
   }
 
   else if (step.id === 'color') {
-    html = `<h2>カラーリング</h2><p class="hint">ボディ色を選んでください。</p>
+    html = `<h2>カラーリング</h2><p class="hint">メインカラーを選択。サブカラーも変更できます。</p>
+      <h3>メインカラー</h3>
       <div class="color-grid">${PALETTE.map(c=>`
-        <div class="color-swatch ${state.bodyColor===c?'selected':''}" style="background:${c}" onclick="setColor('${c}')"></div>
+        <div class="color-swatch ${state.bodyColor===c?'selected':''}" style="background:${c}" onclick="state.bodyColor='${c}';renderPanel();render()"></div>
       `).join('')}</div>
-      <div class="row" style="margin-top:14px"><label>カスタム色</label><input type="color" value="${state.bodyColor}" oninput="setColor(this.value)"></div>
-      <div class="row"><label>メタリック</label><input type="checkbox" ${state.metallic?'checked':''} onchange="state.metallic=this.checked;render()"></div>`;
-  }
-
-  else if (step.id === 'glass') {
-    html = `<h2>ガラスの色</h2><p class="hint">窓のティント（色味）を調整できます。</p>
-      <div class="color-grid">
-        ${['#3a4a55','#1a2530','#2a4060','#4a5560','#3a3525','#aabfd0'].map(c=>`
-          <div class="color-swatch ${state.windowTint===c?'selected':''}" style="background:${c}" onclick="state.windowTint='${c}';renderPanel();render()"></div>
-        `).join('')}
-      </div>
-      <div class="row" style="margin-top:14px"><label>濃さ</label>
-        <input type="range" min="0.3" max="1" step="0.05" value="${state.tintLevel}" oninput="state.tintLevel=Number(this.value);render()">
-      </div>`;
+      <div class="row" style="margin-top:10px"><label>カスタム</label><input type="color" value="${state.bodyColor}" oninput="state.bodyColor=this.value;render()"></div>
+      <h3>サブカラー（屋根・ライン）</h3>
+      <div class="color-grid">${PALETTE.map(c=>`
+        <div class="color-swatch ${state.subColor===c?'selected':''}" style="background:${c}" onclick="state.subColor='${c}';renderPanel();render()"></div>
+      `).join('')}</div>
+      <div class="row" style="margin-top:10px"><label>カスタム</label><input type="color" value="${state.subColor}" oninput="state.subColor=this.value;render()"></div>`;
   }
 
   else if (step.id === 'wheel') {
     const styles = [
-      ['spoke5','5本スポーク'],['spoke6','6本スポーク'],['spoke8','8本スポーク'],
-      ['mesh','メッシュ'],['turbine','タービン'],['split5','ツインスポーク'],
-      ['deepdish','ディープディッシュ'],['star','スター'],['offroad','オフロード'],['disk','ディスク']
+      ['spoke5','5本スポーク'],['spoke6','6本スポーク'],['truck6','大型トラック'],
+      ['mesh','メッシュ'],['turbine','タービン'],['disk','ディスク'],
+      ['offroad','オフロード'],['star','スター'],['split5','ツインスポーク']
     ];
-    html = `<h2>ホイール</h2><p class="hint">ホイールの形状と色を選びましょう。</p>
+    html = `<h2>ホイール</h2><p class="hint">建設車両はオフロード、トラックは大型タイプがおすすめ。</p>
       <div class="row"><label>形状</label>
         <select onchange="state.wheelStyle=this.value;render()">
           ${styles.map(([v,l])=>`<option value="${v}" ${state.wheelStyle===v?'selected':''}>${l}</option>`).join('')}
         </select>
       </div>
-      <div class="row"><label>ホイール色</label><input type="color" value="${state.hubColor}" oninput="state.hubColor=this.value;render()"></div>
-      <div class="row"><label>タイヤ色</label><input type="color" value="${state.tireColor}" oninput="state.tireColor=this.value;render()"></div>`;
+      <div class="row"><label>ホイール色</label><input type="color" value="${state.hubColor}" oninput="state.hubColor=this.value;render()"></div>`;
   }
 
-  else if (step.id === 'light') {
-    html = `<h2>ライト</h2><p class="hint">ヘッドライトとテールライトの色を選びます。</p>
-      <div class="row"><label>点灯</label><input type="checkbox" ${state.headOn?'checked':''} onchange="state.headOn=this.checked;render()"></div>
-      <div class="row"><label>ヘッドライト色</label><input type="color" value="${state.headColor}" oninput="state.headColor=this.value;render()"></div>
-      <div class="row"><label>テールライト色</label><input type="color" value="${state.tailColor}" oninput="state.tailColor=this.value;render()"></div>`;
-  }
-
-  else if (step.id === 'deco') {
-    const decos = [['none','なし'],['siren','🚨 パトランプ'],['spoiler','🏁 スポイラー'],['rack','📦 ルーフキャリア'],['ladder','🪜 はしご'],['antenna','📡 アンテナ']];
-    html = `<h2>屋根の装飾</h2><p class="hint">屋根のアクセサリーを選びましょう。</p>
-      <div class="row"><label>装飾</label>
-        <select onchange="state.roofDeco=this.value;render()">
-          ${decos.map(([v,l])=>`<option value="${v}" ${state.roofDeco===v?'selected':''}>${l}</option>`).join('')}
-        </select>
-      </div>
-      <div class="row"><label>サイドストライプ</label><input type="checkbox" ${state.stripe?'checked':''} onchange="state.stripe=this.checked;render()"></div>
-      <div class="row"><label>ストライプ色</label><input type="color" value="${state.stripeColor}" oninput="state.stripeColor=this.value;render()"></div>`;
+  else if (step.id === 'extra') {
+    html = `<h2>装備</h2><p class="hint">車種に応じた特殊装備があります。</p>
+      <div class="row"><label>回転灯（緊急車両）</label><input type="checkbox" ${state.beaconOn?'checked':''} onchange="state.beaconOn=this.checked;render()"></div>
+      <p class="hint">※車種ごとの装備（クレーンアーム、ショベル、ドラム等）は自動で表示されます。</p>`;
   }
 
   else if (step.id === 'decal') {
-    html = `<h2>デカール（文字）</h2><p class="hint">車体に文字を入れられます。空欄でもOK。</p>
-      <div class="row"><label>テキスト</label><input type="text" placeholder="例: POLICE" value="${escapeHtml(state.decalText)}" oninput="state.decalText=this.value;render()"></div>
-      <div class="row"><label>文字色</label><input type="color" value="${state.decalColor}" oninput="state.decalColor=this.value;render()"></div>
-      <div class="row"><label>文字サイズ</label><input type="range" min="14" max="60" value="${state.decalSize}" oninput="state.decalSize=Number(this.value);render()"></div>`;
+    html = `<h2>ロゴ・文字</h2><p class="hint">車体に文字を入れられます（例：POLICE、消防、〇〇運輸）</p>
+      <div class="row"><label>テキスト</label><input type="text" placeholder="例: POLICE / 消防" value="${escapeHtml(state.decalText)}" oninput="state.decalText=this.value;render()"></div>
+      <div class="row"><label>文字色</label><input type="color" value="${state.decalColor}" oninput="state.decalColor=this.value;render()"></div>`;
   }
 
   else if (step.id === 'finish') {
+    const car = CARS[state.bodyType];
     html = `<h2>🎉 完成！</h2>
-      <p class="hint">マイトミカが完成しました。走行デモで動きを確認できます。</p>
+      <p class="hint">マイトミカが完成しました。走行デモで動きを確認！</p>
       <div class="summary">
-        🚗 車種: <span>${CARS[state.bodyType]?.label || '-'}</span><br>
-        🎨 ボディ: <span>${state.bodyColor}</span>${state.metallic?'（メタリック）':''}<br>
+        🚗 車種: <span>${car?.label || '-'}</span><br>
+        🎨 メイン色: <span>${state.bodyColor}</span><br>
+        🎨 サブ色: <span>${state.subColor}</span><br>
         🛞 ホイール: <span>${state.wheelStyle}</span><br>
-        💡 ライト: <span>${state.headOn?'点灯':'消灯'}</span><br>
-        ✨ 装飾: <span>${state.roofDeco}</span><br>
-        📝 デカール: <span>${state.decalText||'（なし）'}</span>
+        📝 ロゴ: <span>${state.decalText||'（なし）'}</span>
       </div>
       <button class="btn-finish" style="width:100%;margin-top:14px;padding:14px;border:0;border-radius:8px;cursor:pointer;font-weight:700;font-size:15px" onclick="toggleDemo()">
         ${demo.on?'■ デモを停止':'🏁 走行デモを開始'}
       </button>`;
   }
 
-  // ナビゲーション
   const canNext = currentStep === 0 ? state.bodyType !== null : true;
   html += `<div class="nav-btns">
     ${currentStep>0 ? '<button class="btn-back" onclick="prevStep()">← 戻る</button>' : ''}
@@ -462,21 +559,23 @@ function renderPanel() {
 
 function selectBody(type) {
   state.bodyType = type;
-  // プリセットの初期値を適用
   const car = CARS[type];
-  if (car._bodyColor) state.bodyColor = car._bodyColor;
-  if (car._decal) state.decalText = car._decal;
-  if (car._roofDeco) state.roofDeco = car._roofDeco;
-  if (car._twoTone) state.twoToneColor = car._twoTone;
+  state.bodyColor = car.defaultColor;
+  state.subColor = car.defaultSub;
+  state.decalText = car.defaultDecal || '';
+  // 車種ごとに最適ホイールも設定
+  if (['excavator','bulldozer'].includes(type)) state.wheelStyle = 'offroad';
+  else if (['tractor'].includes(type)) state.wheelStyle = 'spoke6';
+  else if (['cargotruck','dumptruck','tanker','mixer','crane','garbage','firetruck','bus','schoolbus'].includes(type)) state.wheelStyle = 'truck6';
+  else state.wheelStyle = 'spoke5';
   renderPanel(); render();
 }
-function setColor(c) { state.bodyColor = c; renderPanel(); render(); }
+
 function nextStep() { if (currentStep<STEPS.length-1) { currentStep++; renderStepper(); renderPanel(); render(); } }
 function prevStep() { if (currentStep>0) { currentStep--; renderStepper(); renderPanel(); render(); } }
 
-/* ====== 描画 ====== */
+/* ====== デモ ====== */
 const demo = { on:false, t:0, speed:8, bgOffset:0, wheelAngle:0, raf:null };
-
 function toggleDemo() {
   demo.on = !demo.on;
   document.getElementById('demoBar').classList.toggle('show', demo.on);
@@ -492,161 +591,316 @@ function loop() {
   demo.raf = requestAnimationFrame(loop);
 }
 
+/* ====== メイン描画 ====== */
 function render() {
   const svg = document.getElementById('stage');
-  // ステップに応じて部品の表示制御（積み上げ演出）
-  const show = {
-    body: currentStep >= 0 && state.bodyType,
-    paint: currentStep >= 1 && state.bodyType,
-    glass: currentStep >= 2 && state.bodyType,
-    wheel: currentStep >= 3 && state.bodyType,
-    light: currentStep >= 4 && state.bodyType,
-    deco:  currentStep >= 5 && state.bodyType,
-    decal: currentStep >= 6 && state.bodyType,
-  };
-
   if (!state.bodyType) {
-    svg.innerHTML = `${renderBackground()}<text x="400" y="200" text-anchor="middle" font-size="28" fill="rgba(255,255,255,.6)">← 車種を選んでください</text>`;
+    svg.innerHTML = `${renderBackground()}<text x="400" y="200" text-anchor="middle" font-size="26" fill="rgba(255,255,255,.7)">← 働く車を選んでください</text>`;
     return;
   }
-
-  const car = resolveCar(state.bodyType);
+  const car = CARS[state.bodyType];
   const bounce = demo.on ? Math.sin(demo.t * 0.3) * 2 : 0;
 
-  // グラデーション定義
-  const bodyFill = show.paint
-    ? (state.metallic ? 'url(#bodyGrad)' : state.bodyColor)
-    : '#999';
   const grads = `
     <defs>
       <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${lighten(state.bodyColor, 0.35)}"/>
-        <stop offset="40%" stop-color="${state.bodyColor}"/>
-        <stop offset="100%" stop-color="${darken(state.bodyColor, 0.35)}"/>
+        <stop offset="0%" stop-color="${lighten(state.bodyColor, 0.25)}"/>
+        <stop offset="50%" stop-color="${state.bodyColor}"/>
+        <stop offset="100%" stop-color="${darken(state.bodyColor, 0.25)}"/>
       </linearGradient>
-      <linearGradient id="winGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0%" stop-color="${lighten(state.windowTint, 0.3)}" stop-opacity="${state.tintLevel}"/>
-        <stop offset="100%" stop-color="${state.windowTint}" stop-opacity="${state.tintLevel}"/>
+      <linearGradient id="subGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${lighten(state.subColor, 0.2)}"/>
+        <stop offset="100%" stop-color="${state.subColor}"/>
       </linearGradient>
       <radialGradient id="headGlow">
-        <stop offset="0%" stop-color="${state.headColor}" stop-opacity="1"/>
-        <stop offset="60%" stop-color="${state.headColor}" stop-opacity="0.6"/>
-        <stop offset="100%" stop-color="${state.headColor}" stop-opacity="0"/>
+        <stop offset="0%" stop-color="#ffffcc" stop-opacity="1"/>
+        <stop offset="60%" stop-color="#ffff88" stop-opacity="0.5"/>
+        <stop offset="100%" stop-color="#ffff00" stop-opacity="0"/>
       </radialGradient>
       <clipPath id="bodyClip"><path d="${car.body()}"/></clipPath>
     </defs>`;
 
-  // 各部品
   const bg = renderBackground();
-  const shadow = `<ellipse cx="400" cy="335" rx="280" ry="10" fill="rgba(0,0,0,.35)"/>`;
+  const shadow = `<ellipse cx="400" cy="335" rx="290" ry="10" fill="rgba(0,0,0,.35)"/>`;
 
-  // フェンダーアーチ（タイヤの後ろに暗い円）
-  const archF = show.wheel ? `<circle cx="${car.wheelArchF.x}" cy="${car.wheelArchF.y}" r="${car.wheelArchF.r}" fill="#0a0a0a"/>` : '';
-  const archR = show.wheel ? `<circle cx="${car.wheelArchR.x}" cy="${car.wheelArchR.y}" r="${car.wheelArchR.r}" fill="#0a0a0a"/>` : '';
-
-  // ボディ
-  const bodyEl = `<path d="${car.body()}" fill="${bodyFill}" stroke="rgba(0,0,0,.5)" stroke-width="1.5" transform="translate(0,${bounce})"/>`;
-
-  // 2トーン（パトカーなど）
-  let twoTone = '';
-  if (show.paint && state.twoToneColor) {
-    twoTone = `<rect x="0" y="270" width="800" height="50" fill="${state.twoToneColor}" clip-path="url(#bodyClip)" transform="translate(0,${bounce})"/>`;
+  // クローラー（建設機械）
+  let crawlers = '';
+  if (car.crawlers) {
+    crawlers = renderCrawler(car.wheelF.x, 312) + renderCrawler(car.wheelR.x, 312);
   }
 
-  // ストライプ
-  let stripe = '';
-  if (show.deco && state.stripe) {
-    stripe = `<rect x="0" y="252" width="800" height="6" fill="${state.stripeColor}" clip-path="url(#bodyClip)" transform="translate(0,${bounce})"/>`;
-  }
-
-  // キャラクターライン
-  const charLine = show.paint && car.charLine
-    ? `<path d="${car.charLine}" fill="none" stroke="rgba(0,0,0,.2)" stroke-width="2" transform="translate(0,${bounce})"/>` : '';
-
-  // ガラス
-  let glass = '';
-  if (show.glass) {
-    glass = `<path d="${car.window()}" fill="url(#winGrad)" stroke="rgba(0,0,0,.6)" stroke-width="1.5" transform="translate(0,${bounce})"/>
-             <path d="${car.window()}" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1" transform="translate(0,${bounce})"/>`;
-    // ピラー
-    const pillars = [car.pillarX, car.pillarX2, car.pillarX3].filter(Boolean);
-    pillars.forEach(px => {
-      glass += `<line x1="${px}" y1="155" x2="${px}" y2="220" stroke="${state.bodyColor}" stroke-width="4" transform="translate(0,${bounce})"/>`;
+  // フェンダーアーチ
+  let arches = '';
+  if (!car.crawlers) {
+    [car.archF, car.archR, car.archR2, car.archR3].filter(Boolean).forEach(a => {
+      arches += `<circle cx="${a.x}" cy="${a.y}" r="${a.r}" fill="#0a0a0a"/>`;
     });
-    // 反射ハイライト
-    glass += `<path d="${car.window()}" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1.5" stroke-dasharray="2 4" transform="translate(0,${bounce})"/>`;
+  }
+
+  // ボディ（太い黒縁取りでおもちゃ感）
+  const bodyEl = `<path d="${car.body()}" fill="url(#bodyGrad)" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round" transform="translate(0,${bounce})"/>`;
+
+  // サブカラー塗装（屋根 or 下半分）
+  let subPaint = '';
+  if (car.bodyStyle === 'sedan') {
+    // パトカー風2トーン
+    subPaint = `<rect x="0" y="262" width="800" height="50" fill="url(#subGrad)" clip-path="url(#bodyClip)" transform="translate(0,${bounce})"/>`;
+  } else if (['van','truck','bus'].includes(car.bodyStyle)) {
+    // 屋根帯
+    subPaint = `<rect x="0" y="100" width="800" height="40" fill="url(#subGrad)" clip-path="url(#bodyClip)" transform="translate(0,${bounce})"/>`;
+  }
+
+  // サイドストライプ
+  let stripe = '';
+  if (car.sideStripe === 'middle') {
+    stripe = `<rect x="0" y="248" width="800" height="6" fill="${state.subColor}" clip-path="url(#bodyClip)" transform="translate(0,${bounce})"/>`;
+  } else if (car.sideStripe === 'cross') {
+    // 救急車の赤十字ライン
+    stripe = `<rect x="0" y="180" width="800" height="8" fill="${state.subColor}" clip-path="url(#bodyClip)" transform="translate(0,${bounce})"/>`;
+  }
+
+  // ガラス（青みがかった）
+  const glass = car.window ? `
+    <path d="${car.window()}" fill="rgba(70,130,180,.65)" stroke="#1a1a1a" stroke-width="2.5" stroke-linejoin="round" transform="translate(0,${bounce})"/>
+    <path d="${car.window()}" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1" transform="translate(0,${bounce})"/>` : '';
+
+  // Bピラー
+  let pillars = '';
+  (car.pillars || []).forEach(px => {
+    pillars += `<line x1="${px}" y1="155" x2="${px}" y2="220" stroke="${state.bodyColor}" stroke-width="5" stroke-linecap="round" transform="translate(0,${bounce})"/>`;
+  });
+
+  // ライト
+  let lights = '';
+  const h = car.headlight, t = car.taillight;
+  lights += `<circle cx="${h.x}" cy="${h.y+bounce}" r="9" fill="#fff7c2" stroke="#1a1a1a" stroke-width="2"/>`;
+  lights += `<circle cx="${h.x}" cy="${h.y+bounce}" r="5" fill="#ffffff"/>`;
+  lights += `<circle cx="${t.x}" cy="${t.y+bounce}" r="7" fill="#ff2222" stroke="#1a1a1a" stroke-width="2"/>`;
+  lights += `<circle cx="${t.x}" cy="${t.y+bounce}" r="3" fill="#ffaaaa"/>`;
+  if (demo.on) {
+    lights += `<ellipse cx="${h.x-22}" cy="${h.y+bounce}" rx="35" ry="12" fill="url(#headGlow)" opacity="0.6"/>`;
+  }
+
+  // グリル
+  let grille = '';
+  if (car.grille) {
+    const g = car.grille;
+    grille = `<rect x="${g.x}" y="${g.y+bounce}" width="${g.w}" height="${g.h}" fill="#1a1a1a" stroke="#333" stroke-width="1" rx="2"/>`;
+    for (let i = 0; i < Math.floor(g.h/6); i++) {
+      grille += `<line x1="${g.x+2}" y1="${g.y+bounce+5+i*6}" x2="${g.x+g.w-2}" y2="${g.y+bounce+5+i*6}" stroke="#666" stroke-width="1"/>`;
+    }
+  }
+
+  // ドアハンドル
+  let handles = '';
+  (car.doorHandles || []).forEach(dh => {
+    handles += `<rect x="${dh.x-9}" y="${dh.y+bounce-2}" width="18" height="4" rx="2" fill="#1a1a1a"/>
+                <rect x="${dh.x-8}" y="${dh.y+bounce-1.5}" width="16" height="1.5" fill="rgba(255,255,255,.4)"/>`;
+  });
+
+  // サイドミラー
+  let mirror = '';
+  if (car.mirror) {
+    mirror = `<path d="M ${car.mirror.x} ${car.mirror.y+bounce} l 14 -3 l 3 10 l -14 3 z" fill="${state.bodyColor}" stroke="#1a1a1a" stroke-width="1.5"/>`;
+  }
+
+  // 屋根装備
+  let roofItem = '';
+  if (car.roofItem === 'siren' && state.beaconOn) {
+    roofItem = renderSiren(car, bounce);
+  } else if (car.roofItem === 'fireLadder') {
+    roofItem = renderFireLadder(car, bounce);
+  }
+
+  // 車種別アクセサリー
+  let accessories = '';
+  if (car.accessories === 'shovelArm') accessories = renderShovelArm(bounce);
+  if (car.accessories === 'bulldozerBlade') accessories = renderBulldozerBlade(bounce);
+  if (car.accessories === 'craneArm') accessories = renderCraneArm(bounce);
+  if (car.accessories === 'dumpBed') accessories = renderDumpBed(bounce);
+  if (car.accessories === 'mixerDrum') accessories = renderMixerDrum(bounce);
+  if (car.accessories === 'tankerTank') accessories = renderTankerTank(bounce);
+  if (car.accessories === 'busStripe') accessories = renderBusStripe(bounce);
+  if (car.accessories === 'fireGear') accessories = renderFireGear(bounce);
+
+  // デカール（ロゴ枠付き）
+  let decal = '';
+  if (state.decalText) {
+    const w = state.decalText.length * 14 + 30;
+    decal = `<g transform="translate(400,${245+bounce})">
+      <rect x="${-w/2}" y="-18" width="${w}" height="32" fill="${state.subColor}" stroke="#1a1a1a" stroke-width="2.5" rx="4"/>
+      <text x="0" y="6" font-size="22" font-weight="900" fill="${state.decalColor}" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" letter-spacing="1">${escapeHtml(state.decalText)}</text>
+    </g>`;
   }
 
   // ホイール
   let wheels = '';
-  if (show.wheel) {
-    wheels = renderWheel(car.wheelF) + renderWheel(car.wheelR);
-  }
-
-  // ライト
-  let lights = '';
-  if (show.light) {
-    const h = car.headlight, t = car.taillight;
-    // ヘッドライト本体
-    lights += `<ellipse cx="${h.x}" cy="${h.y+bounce}" rx="${h.rx}" ry="${h.ry}" fill="${state.headColor}" stroke="#ddd" stroke-width="1.5"/>`;
-    lights += `<ellipse cx="${h.x}" cy="${h.y+bounce}" rx="${h.rx*0.6}" ry="${h.ry*0.6}" fill="#fff"/>`;
-    // テールライト
-    lights += `<ellipse cx="${t.x}" cy="${t.y+bounce}" rx="${t.rx}" ry="${t.ry}" fill="${state.tailColor}" stroke="#660000" stroke-width="1"/>`;
-    lights += `<ellipse cx="${t.x}" cy="${t.y+bounce}" rx="${t.rx*0.5}" ry="${t.ry*0.5}" fill="${lighten(state.tailColor,0.4)}"/>`;
-    // 発光（デモ中＆点灯）
-    if (state.headOn && demo.on) {
-      lights += `<ellipse cx="${h.x-25}" cy="${h.y+bounce}" rx="40" ry="14" fill="url(#headGlow)" opacity="0.7"/>`;
-    }
-    // グリル
-    lights += car.grille();
-    // ドアハンドル
-    car.doorHandle.forEach(dh => {
-      lights += `<rect x="${dh.x-8}" y="${dh.y+bounce-2}" width="16" height="3" rx="1" fill="rgba(0,0,0,.5)"/>
-                 <rect x="${dh.x-7}" y="${dh.y+bounce-1.5}" width="14" height="1" fill="rgba(255,255,255,.3)"/>`;
+  if (!car.crawlers) {
+    [car.wheelF, car.wheelR, car.wheelR2, car.wheelR3].filter(Boolean).forEach(w => {
+      wheels += renderWheel(w);
     });
-    // サイドミラー
-    if (car.mirror) {
-      lights += `<path d="M ${car.mirror.x} ${car.mirror.y+bounce} l 12 -2 l 2 8 l -12 2 z" fill="${state.bodyColor}" stroke="rgba(0,0,0,.4)"/>`;
-    }
   }
 
-  // 屋根装飾
-  let roofDeco = '';
-  if (show.deco) roofDeco = renderRoofDeco(car, bounce);
-
-  // デカール
-  let decal = '';
-  if (show.decal && state.decalText) {
-    decal = `<text x="400" y="${245+bounce}" font-size="${state.decalSize}" font-weight="900" fill="${state.decalColor}" text-anchor="middle" stroke="rgba(0,0,0,.5)" stroke-width="1.5" font-family="Impact,sans-serif">${escapeHtml(state.decalText)}</text>`;
-  }
-
-  svg.innerHTML = `${grads}${bg}${shadow}${archF}${archR}${bodyEl}${twoTone}${stripe}${charLine}${glass}${lights}${roofDeco}${decal}${wheels}`;
+  svg.innerHTML = `${grads}${bg}${shadow}${crawlers}${arches}${bodyEl}${subPaint}${stripe}${glass}${pillars}${grille}${lights}${handles}${mirror}${roofItem}${accessories}${decal}${wheels}`;
 }
 
-/* ====== ホイール（フェンダー内） ====== */
+/* ====== 緊急車両：回転灯 ====== */
+function renderSiren(car, bounce) {
+  const positions = {
+    police:{x:415,y:158}, ambulance:{x:455,y:130}
+  };
+  const p = positions[state.bodyType] || {x:400,y:155};
+  const blink = demo.on && Math.floor(demo.t/8)%2===0;
+  return `<g transform="translate(${p.x},${p.y+bounce})">
+    <rect x="-32" y="-16" width="64" height="14" rx="3" fill="#1a1a1a" stroke="#000" stroke-width="1"/>
+    <rect x="-30" y="-14" width="28" height="10" fill="${blink?'#ff3333':'#660000'}" stroke="#fff" stroke-width="0.5"/>
+    <rect x="2" y="-14" width="28" height="10" fill="${blink?'#3333ff':'#000066'}" stroke="#fff" stroke-width="0.5"/>
+    ${demo.on && blink ? `
+      <circle cx="-16" cy="-9" r="22" fill="#ff3333" opacity="0.35"/>
+      <circle cx="16" cy="-9" r="22" fill="#3333ff" opacity="0.35"/>` : ''}
+  </g>`;
+}
+
+/* ====== 消防車：はしご ====== */
+function renderFireLadder(car, bounce) {
+  return `<g transform="translate(540,140) translate(0,${bounce})">
+    <rect x="-160" y="-10" width="320" height="6" fill="#c0c0c0" stroke="#1a1a1a" stroke-width="1.5"/>
+    <rect x="-160" y="0" width="320" height="6" fill="#c0c0c0" stroke="#1a1a1a" stroke-width="1.5"/>
+    ${Array.from({length:16}).map((_,i)=>`<rect x="${-155+i*20}" y="-10" width="3" height="16" fill="#888"/>`).join('')}
+    <circle cx="-100" cy="-5" r="6" fill="#ffd60a" stroke="#1a1a1a" stroke-width="1.5"/>
+  </g>`;
+}
+
+/* ====== ショベルアーム ====== */
+function renderShovelArm(bounce) {
+  const ang = demo.on ? Math.sin(demo.t*0.05)*10 : 0;
+  return `<g transform="translate(360,200) translate(0,${bounce}) rotate(${ang})">
+    <rect x="0" y="-12" width="120" height="20" fill="${state.bodyColor}" stroke="#1a1a1a" stroke-width="2.5" rx="3"/>
+    <g transform="translate(120,0)">
+      <rect x="0" y="-10" width="100" height="16" fill="${state.bodyColor}" stroke="#1a1a1a" stroke-width="2.5" rx="3" transform="rotate(35)"/>
+      <g transform="translate(82,57)">
+        <path d="M -25 -10 L 25 -10 L 30 25 L -20 25 Z" fill="#1a1a1a" stroke="#000" stroke-width="2"/>
+        <path d="M -20 25 L 30 25 L 25 32 L -15 32 Z" fill="#444"/>
+      </g>
+    </g>
+    <circle cx="0" cy="0" r="5" fill="#666" stroke="#1a1a1a" stroke-width="1.5"/>
+    <circle cx="120" cy="0" r="5" fill="#666" stroke="#1a1a1a" stroke-width="1.5"/>
+  </g>`;
+}
+
+/* ====== ブルドーザーブレード ====== */
+function renderBulldozerBlade(bounce) {
+  return `<g transform="translate(170,260) translate(0,${bounce})">
+    <path d="M 0 -50 Q -10 -20 0 20 L 50 25 L 50 -45 Z" fill="${darken(state.bodyColor,0.2)}" stroke="#1a1a1a" stroke-width="3"/>
+    <path d="M 0 -50 Q -10 -20 0 20 L 50 25 L 50 -45 Z" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="1.5"/>
+    <line x1="50" y1="-30" x2="100" y2="-15" stroke="#1a1a1a" stroke-width="4"/>
+    <line x1="50" y1="10" x2="100" y2="20" stroke="#1a1a1a" stroke-width="4"/>
+  </g>`;
+}
+
+/* ====== クレーンアーム ====== */
+function renderCraneArm(bounce) {
+  return `<g transform="translate(420,240) translate(0,${bounce})">
+    <rect x="-20" y="-10" width="40" height="20" fill="${darken(state.bodyColor,0.15)}" stroke="#1a1a1a" stroke-width="2" rx="2"/>
+    <g transform="rotate(-40)">
+      <rect x="0" y="-8" width="260" height="16" fill="${state.bodyColor}" stroke="#1a1a1a" stroke-width="2.5" rx="2"/>
+      ${Array.from({length:8}).map((_,i)=>`<line x1="${20+i*30}" y1="-8" x2="${20+i*30}" y2="8" stroke="#1a1a1a" stroke-width="1.5"/>`).join('')}
+      <line x1="260" y1="0" x2="260" y2="70" stroke="#1a1a1a" stroke-width="2"/>
+      <rect x="252" y="70" width="16" height="14" fill="#888" stroke="#1a1a1a" stroke-width="1.5"/>
+    </g>
+  </g>`;
+}
+
+/* ====== ダンプベッド ====== */
+function renderDumpBed(bounce) {
+  return `<g transform="translate(0,${bounce})">
+    <path d="M 360 160 L 360 240 L 720 240 L 720 200 L 700 160 Z" fill="${darken(state.bodyColor,0.15)}" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/>
+    ${Array.from({length:6}).map((_,i)=>`<line x1="${380+i*55}" y1="160" x2="${380+i*55}" y2="240" stroke="rgba(0,0,0,.3)" stroke-width="1.5"/>`).join('')}
+  </g>`;
+}
+
+/* ====== ミキサードラム ====== */
+function renderMixerDrum(bounce) {
+  const rot = demo.on ? demo.t * 3 : 0;
+  return `<g transform="translate(530,200) translate(0,${bounce})">
+    <ellipse cx="0" cy="0" rx="170" ry="55" fill="${darken(state.bodyColor,0.1)}" stroke="#1a1a1a" stroke-width="3"/>
+    <g transform="rotate(${rot})">
+      ${Array.from({length:6}).map((_,i)=>`<line x1="${-160+i*60}" y1="-50" x2="${-140+i*60}" y2="50" stroke="rgba(0,0,0,.5)" stroke-width="2.5"/>`).join('')}
+    </g>
+    <ellipse cx="-170" cy="0" rx="12" ry="40" fill="#1a1a1a"/>
+    <ellipse cx="170" cy="0" rx="15" ry="45" fill="${darken(state.bodyColor,0.2)}" stroke="#1a1a1a" stroke-width="2"/>
+  </g>`;
+}
+
+/* ====== タンク（タンクローリー） ====== */
+function renderTankerTank(bounce) {
+  return `<g transform="translate(540,195) translate(0,${bounce})">
+    <ellipse cx="0" cy="0" rx="170" ry="48" fill="url(#bodyGrad)" stroke="#1a1a1a" stroke-width="3"/>
+    <ellipse cx="-170" cy="0" rx="10" ry="40" fill="#888" stroke="#1a1a1a" stroke-width="2"/>
+    <ellipse cx="170" cy="0" rx="10" ry="40" fill="#888" stroke="#1a1a1a" stroke-width="2"/>
+    <rect x="-20" y="-50" width="40" height="10" fill="#666" stroke="#1a1a1a" stroke-width="2" rx="2"/>
+    <line x1="-150" y1="0" x2="150" y2="0" stroke="${state.subColor}" stroke-width="8"/>
+  </g>`;
+}
+
+/* ====== バスストライプ ====== */
+function renderBusStripe(bounce) {
+  return `<rect x="95" y="210" width="610" height="10" fill="${state.subColor}" clip-path="url(#bodyClip)" transform="translate(0,${bounce})"/>`;
+}
+
+/* ====== 消防車装備 ====== */
+function renderFireGear(bounce) {
+  return `<g transform="translate(0,${bounce})">
+    <rect x="385" y="170" width="50" height="60" fill="${darken(state.bodyColor,0.2)}" stroke="#1a1a1a" stroke-width="2" rx="2"/>
+    <rect x="445" y="170" width="50" height="60" fill="${darken(state.bodyColor,0.2)}" stroke="#1a1a1a" stroke-width="2" rx="2"/>
+    <rect x="505" y="170" width="50" height="60" fill="${darken(state.bodyColor,0.2)}" stroke="#1a1a1a" stroke-width="2" rx="2"/>
+    <circle cx="660" cy="195" r="22" fill="#1a1a1a" stroke="#000" stroke-width="2"/>
+    <circle cx="660" cy="195" r="14" fill="#444"/>
+    <circle cx="660" cy="195" r="6" fill="#888"/>
+  </g>`;
+}
+
+/* ====== クローラー（建設車両） ====== */
+function renderCrawler(cx, cy) {
+  const w = 130, h = 20;
+  let treads = '';
+  for (let i = 0; i < 16; i++) {
+    const x = cx - w/2 + i*(w/16) + (demo.on ? demo.bgOffset%8 : 0);
+    treads += `<rect x="${x}" y="${cy-10}" width="4" height="20" fill="#333" stroke="#1a1a1a" stroke-width="0.5"/>`;
+  }
+  return `<g>
+    <rect x="${cx-w/2-5}" y="${cy-14}" width="${w+10}" height="28" rx="14" fill="#1a1a1a"/>
+    ${treads}
+    <circle cx="${cx-w/2}" cy="${cy}" r="14" fill="#444" stroke="#1a1a1a" stroke-width="2"/>
+    <circle cx="${cx+w/2}" cy="${cy}" r="14" fill="#444" stroke="#1a1a1a" stroke-width="2"/>
+  </g>`;
+}
+
+/* ====== ホイール ====== */
 function renderWheel(w) {
-  const s = state;
-  const r = w.r;
+  const s = state, r = w.r;
   const ang = demo.on ? demo.wheelAngle : 0;
   let inner = '';
 
   switch (s.wheelStyle) {
     case 'spoke5': inner = spokes(5, r*0.7, s.hubColor, 5); break;
     case 'spoke6': inner = spokes(6, r*0.7, s.hubColor, 4); break;
-    case 'spoke8': inner = spokes(8, r*0.7, s.hubColor, 3); break;
-    case 'mesh':
-      inner = spokes(6, r*0.7, s.hubColor, 2)
-            + `<circle r="${r*0.45}" fill="none" stroke="${s.hubColor}" stroke-width="2"/>`;
+    case 'truck6':
+      // トラック用：6穴ホイール
+      inner = `<circle r="${r*0.7}" fill="${s.hubColor}" stroke="#1a1a1a" stroke-width="2"/>` +
+              Array.from({length:6}).map((_,i)=>{
+                const a = (i/6) * Math.PI * 2;
+                return `<circle cx="${Math.cos(a)*r*0.45}" cy="${Math.sin(a)*r*0.45}" r="${r*0.12}" fill="#1a1a1a"/>`;
+              }).join('') +
+              `<circle r="${r*0.18}" fill="#888" stroke="#1a1a1a" stroke-width="1.5"/>`;
       break;
-    case 'disk':
-      inner = `<circle r="${r*0.7}" fill="${s.hubColor}"/>
-               <circle r="${r*0.5}" fill="none" stroke="#222" stroke-width="1.5"/>`;
-      break;
+    case 'mesh': inner = spokes(6, r*0.7, s.hubColor, 2) + `<circle r="${r*0.45}" fill="none" stroke="${s.hubColor}" stroke-width="2"/>`; break;
+    case 'disk': inner = `<circle r="${r*0.7}" fill="${s.hubColor}"/><circle r="${r*0.5}" fill="none" stroke="#222" stroke-width="1.5"/>`; break;
     case 'star': {
       let pts = '';
       for (let i = 0; i < 10; i++) {
-        const a = (i / 10) * Math.PI * 2 - Math.PI/2;
-        const rr = i % 2 === 0 ? r*0.75 : r*0.35;
+        const a = (i/10) * Math.PI * 2 - Math.PI/2;
+        const rr = i%2 === 0 ? r*0.75 : r*0.35;
         pts += `${Math.cos(a)*rr},${Math.sin(a)*rr} `;
       }
       inner = `<polygon points="${pts}" fill="${s.hubColor}"/>`;
@@ -654,104 +908,48 @@ function renderWheel(w) {
     }
     case 'turbine':
       inner = Array.from({length:6}).map((_,i)=>{
-        const a = (i / 6) * 360;
+        const a = (i/6) * 360;
         return `<path d="M 0 0 Q ${r*0.4} ${r*0.3} ${r*0.75} 0 L ${r*0.65} ${-r*0.25} Q ${r*0.3} ${-r*0.1} 0 0 Z" fill="${s.hubColor}" transform="rotate(${a})"/>`;
       }).join('');
       break;
     case 'split5':
       inner = Array.from({length:5}).map((_,i)=>{
-        const a = (i / 5) * 360;
+        const a = (i/5) * 360;
         return `<g transform="rotate(${a})">
           <line x1="-3" y1="0" x2="${-r*0.25}" y2="${-r*0.75}" stroke="${s.hubColor}" stroke-width="3" stroke-linecap="round"/>
           <line x1="3" y1="0" x2="${r*0.25}" y2="${-r*0.75}" stroke="${s.hubColor}" stroke-width="3" stroke-linecap="round"/>
         </g>`;
       }).join('');
       break;
-    case 'deepdish':
-      inner = `<circle r="${r*0.75}" fill="${s.hubColor}"/>
-               <circle r="${r*0.6}" fill="#1a1a1a"/>
-               ${spokes(5, r*0.55, s.hubColor, 5)}`;
-      break;
     case 'offroad':
-      inner = spokes(6, r*0.55, s.hubColor, 8)
-            + `<circle r="${r*0.3}" fill="${s.hubColor}"/>`;
+      inner = `<circle r="${r*0.55}" fill="${s.hubColor}"/>` + spokes(6, r*0.5, '#1a1a1a', 4);
       break;
   }
 
-  // タイヤトレッド
+  // ゴツゴツしたトレッド（オフロード時は深く）
+  const treadDepth = s.wheelStyle === 'offroad' ? 6 : 3;
   let tread = '';
-  for (let i = 0; i < 14; i++) {
-    const a = (i / 14) * 360;
-    tread += `<rect x="${r-4}" y="-2" width="4" height="4" fill="#2a2a2a" transform="rotate(${a})"/>`;
+  for (let i = 0; i < 16; i++) {
+    const a = (i/16) * 360;
+    tread += `<rect x="${r-treadDepth}" y="-2" width="${treadDepth}" height="4" fill="#0f0f0f" transform="rotate(${a})"/>`;
   }
 
-  return `
-    <g transform="translate(${w.x},${w.y})">
-      <circle r="${r}" fill="${s.tireColor}"/>
-      <circle r="${r*0.85}" fill="#1a1a1a"/>
-      <g transform="rotate(${ang})">
-        ${tread}
-        <circle r="${r*0.75}" fill="#2a2a2a"/>  <!-- ブレーキディスク -->
-        <circle r="${r*0.75}" fill="none" stroke="#555" stroke-width="1"/>
-        ${inner}
-      </g>
-      <circle r="${r*0.13}" fill="${s.hubColor}" stroke="#222" stroke-width="1"/>
-    </g>`;
+  return `<g transform="translate(${w.x},${w.y})">
+    <circle r="${r}" fill="#1a1a1a" stroke="#000" stroke-width="1"/>
+    <circle r="${r*0.85}" fill="#0a0a0a"/>
+    <g transform="rotate(${ang})">
+      ${tread}
+      ${inner}
+    </g>
+    <circle r="${r*0.13}" fill="${s.hubColor}" stroke="#222" stroke-width="1.5"/>
+  </g>`;
 }
+
 function spokes(n, r, color, w) {
-  let g = '';
-  for (let i = 0; i < n; i++) {
-    const a = (i / n) * 360;
-    g += `<line x1="0" y1="0" x2="0" y2="${-r}" stroke="${color}" stroke-width="${w}" stroke-linecap="round" transform="rotate(${a})"/>`;
-  }
-  return g;
-}
-
-/* ====== 屋根装飾 ====== */
-function renderRoofDeco(car, bounce) {
-  const s = state;
-  if (s.roofDeco === 'none') return '';
-  // 屋根の中央X、上端Yを推定（車種ごと固定値で簡略化）
-  const types = {
-    sedan:{x:400,y:158}, suv:{x:405,y:138}, sports:{x:430,y:175},
-    truck:{x:285,y:130}, van:{x:455,y:125}, bus:{x:430,y:100},
-    police:{x:400,y:158}, fire:{x:285,y:130}, taxi:{x:400,y:158}
-  };
-  const p = types[state.bodyType] || {x:400,y:160};
-  const blink = demo.on && Math.floor(demo.t/8)%2===0;
-
-  if (s.roofDeco === 'siren') {
-    return `
-      <g transform="translate(${p.x},${p.y+bounce})">
-        <rect x="-30" y="-14" width="60" height="14" rx="3" fill="#1a1a1a"/>
-        <rect x="-28" y="-12" width="26" height="10" fill="${blink?'#ff3030':'#660000'}" stroke="#fff" stroke-width="0.5"/>
-        <rect x="2" y="-12" width="26" height="10" fill="${blink?'#3030ff':'#000066'}" stroke="#fff" stroke-width="0.5"/>
-        ${blink ? `<circle cx="-15" cy="-7" r="18" fill="#ff3030" opacity="0.3"/>
-                   <circle cx="15" cy="-7" r="18" fill="#3030ff" opacity="0.3"/>` : ''}
-      </g>`;
-  }
-  if (s.roofDeco === 'spoiler') {
-    return `<path d="M ${p.x+60} ${p.y+30+bounce} L ${p.x+110} ${p.y+5+bounce} L ${p.x+130} ${p.y+5+bounce} L ${p.x+130} ${p.y+25+bounce} Z" fill="${state.bodyColor}" stroke="rgba(0,0,0,.4)"/>`;
-  }
-  if (s.roofDeco === 'rack') {
-    return `<g transform="translate(${p.x},${p.y+bounce})">
-      <rect x="-80" y="-8" width="160" height="4" fill="#333"/>
-      <rect x="-75" y="-10" width="3" height="8" fill="#333"/>
-      <rect x="72" y="-10" width="3" height="8" fill="#333"/>
-      <rect x="-50" y="-7" width="100" height="2" fill="#444"/>
-    </g>`;
-  }
-  if (s.roofDeco === 'ladder') {
-    return `<g transform="translate(${p.x},${p.y+bounce})">
-      <rect x="-50" y="-10" width="280" height="8" fill="#999" stroke="#444"/>
-      ${Array.from({length:14}).map((_,i)=>`<rect x="${-45+i*20}" y="-10" width="3" height="8" fill="#666"/>`).join('')}
-    </g>`;
-  }
-  if (s.roofDeco === 'antenna') {
-    return `<line x1="${p.x}" y1="${p.y+bounce}" x2="${p.x}" y2="${p.y-30+bounce}" stroke="#222" stroke-width="2"/>
-            <circle cx="${p.x}" cy="${p.y-32+bounce}" r="3" fill="#333"/>`;
-  }
-  return '';
+  return Array.from({length:n}).map((_,i)=>{
+    const a = (i/n) * 360;
+    return `<line x1="0" y1="0" x2="0" y2="${-r}" stroke="${color}" stroke-width="${w}" stroke-linecap="round" transform="rotate(${a})"/>`;
+  }).join('');
 }
 
 /* ====== 背景 ====== */
@@ -766,20 +964,15 @@ function renderBackground() {
   }
   const cloudOffset = (demo.t * 0.5) % 900;
   return `
-    <ellipse cx="${100 - cloudOffset + 800}" cy="60" rx="40" ry="15" fill="rgba(255,255,255,.9)"/>
-    <ellipse cx="${400 - cloudOffset + 800}" cy="40" rx="50" ry="18" fill="rgba(255,255,255,.8)"/>
-    <ellipse cx="${100 - cloudOffset}" cy="60" rx="40" ry="15" fill="rgba(255,255,255,.9)"/>
-    <ellipse cx="${400 - cloudOffset}" cy="40" rx="50" ry="18" fill="rgba(255,255,255,.8)"/>
+    <ellipse cx="${100-cloudOffset+800}" cy="60" rx="40" ry="15" fill="rgba(255,255,255,.9)"/>
+    <ellipse cx="${400-cloudOffset+800}" cy="40" rx="50" ry="18" fill="rgba(255,255,255,.8)"/>
+    <ellipse cx="${100-cloudOffset}" cy="60" rx="40" ry="15" fill="rgba(255,255,255,.9)"/>
+    <ellipse cx="${400-cloudOffset}" cy="40" rx="50" ry="18" fill="rgba(255,255,255,.8)"/>
     <rect x="0" y="280" width="800" height="120" fill="#555"/>
     ${dashes.join('')}`;
 }
 
 /* ====== 共通 ====== */
-function resolveCar(type) {
-  const c = CARS[type];
-  if (c.extends) return CARS[c.extends];
-  return c;
-}
 function lighten(hex, amt) { return shade(hex, amt); }
 function darken(hex, amt) { return shade(hex, -amt); }
 function shade(hex, amt) {
@@ -814,7 +1007,7 @@ function exportPNG() {
   img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(data)));
 }
 function saveJSON() {
-  const blob = new Blob([JSON.stringify({state,step:currentStep}, null, 2)], {type:'application/json'});
+  const blob = new Blob([JSON.stringify({state, step:currentStep}, null, 2)], {type:'application/json'});
   download(blob, 'tomica-config.json');
 }
 function loadJSON(e) {
@@ -844,6 +1037,3 @@ render();
 </script>
 </body>
 </html>
-<style>
-  * { box-sizing: border-box; }
-  body {
