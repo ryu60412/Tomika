@@ -3,289 +3,592 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ミニカーデザイナー</title>
-
+<title>トミカデザイナー v2</title>
 <style>
-body{
-  margin:0;
-  padding:20px;
-  font-family:sans-serif;
-  background:#f5f5f5;
-  text-align:center;
-}
-
-h1{
-  margin-top:0;
-}
-
-#carArea{
-  width:320px;
-  height:220px;
-  margin:20px auto;
-  position:relative;
-}
-
-#car{
-  width:320px;
-  height:220px;
-  position:relative;
-}
-
-#body{
-  position:absolute;
-  left:35px;
-  top:70px;
-  width:250px;
-  height:80px;
-  background:#ff0000;
-  border-radius:20px;
-  transition:.3s;
-}
-
-#roof{
-  position:absolute;
-  left:95px;
-  top:40px;
-  width:130px;
-  height:45px;
-  background:inherit;
-  border-radius:20px 20px 0 0;
-}
-
-.wheel{
-  width:50px;
-  height:50px;
-  background:#222;
-  border-radius:50%;
-  position:absolute;
-  bottom:20px;
-}
-
-.left{
-  left:55px;
-}
-
-.right{
-  right:55px;
-}
-
-#namePlate{
-  position:absolute;
-  width:100%;
-  top:100px;
-  color:white;
-  font-weight:bold;
-  pointer-events:none;
-}
-
-.sticker{
-  position:absolute;
-  font-size:32px;
-  cursor:grab;
-  user-select:none;
-}
-
-.controls{
-  max-width:320px;
-  margin:auto;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-}
-
-button,
-select,
-input{
-  padding:12px;
-  font-size:16px;
-  border-radius:10px;
-  border:1px solid #ccc;
-}
-
-@media(max-width:480px){
-  #carArea{
-    transform:scale(.9);
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: system-ui, sans-serif;
+    background: linear-gradient(135deg, #2c3e50, #4ca1af);
+    color: #fff; min-height: 100vh;
   }
-}
+  header {
+    padding: 12px 20px; background: rgba(0,0,0,.4);
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 8px;
+  }
+  header h1 { margin: 0; font-size: 18px; }
+  .btns button {
+    background: #ff6b35; color: #fff; border: 0;
+    padding: 8px 14px; margin-left: 6px; border-radius: 6px;
+    cursor: pointer; font-weight: 700;
+  }
+  .btns button:hover { background: #ff8855; }
+  .btns button.demo { background: #06d6a0; }
+  .btns button.demo:hover { background: #08e6b0; }
+  .btns button.demo.active { background: #ef476f; }
+  main {
+    display: grid; grid-template-columns: 1fr 360px;
+    gap: 16px; padding: 16px;
+  }
+  @media (max-width: 800px) {
+    main { grid-template-columns: 1fr; }
+  }
+  .preview {
+    background: linear-gradient(180deg, #87ceeb 0%, #87ceeb 70%, #5a8c3a 70%, #5a8c3a 100%);
+    border-radius: 12px; padding: 0;
+    min-height: 360px; position: relative; overflow: hidden;
+  }
+  .preview svg { width: 100%; height: 100%; display: block; }
+  #stage { width: 100%; height: 360px; }
+  .demo-bar {
+    position: absolute; bottom: 8px; left: 8px; right: 8px;
+    background: rgba(0,0,0,.5); padding: 8px 12px; border-radius: 8px;
+    display: none; align-items: center; gap: 10px; color: #fff; font-size: 13px;
+  }
+  .demo-bar.show { display: flex; }
+  .demo-bar input[type=range] { flex: 1; }
+  .controls {
+    background: rgba(0,0,0,.35); border-radius: 12px;
+    padding: 14px; max-height: 80vh; overflow-y: auto;
+  }
+  .tabs { display: flex; gap: 4px; margin-bottom: 10px; flex-wrap: wrap; }
+  .tab {
+    background: rgba(255,255,255,.1); color: #fff; border: 0;
+    padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;
+  }
+  .tab.active { background: #ff6b35; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .row { display: flex; justify-content: space-between; align-items: center; margin: 8px 0; gap: 8px; }
+  .row label { font-size: 13px; flex: 1; }
+  .row input[type=range] { flex: 2; }
+  .row input[type=color] { width: 40px; height: 30px; border: 0; background: none; }
+  .row input[type=text], .row select {
+    flex: 2; padding: 4px 8px; border-radius: 4px; border: 1px solid #888;
+    background: rgba(255,255,255,.9); color: #000;
+  }
+  .preset-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+  }
+  .preset-grid button {
+    background: rgba(255,255,255,.15); color: #fff; border: 0;
+    padding: 8px; border-radius: 6px; cursor: pointer; font-size: 12px;
+  }
+  .preset-grid button:hover { background: rgba(255,255,255,.3); }
 </style>
 </head>
-
 <body>
 
-<h1>🚗 ミニカーデザイナー</h1>
-
-<div id="carArea">
-  <div id="car">
-
-    <div id="body"></div>
-    <div id="roof"></div>
-
-    <div class="wheel left"></div>
-    <div class="wheel right"></div>
-
-    <div id="namePlate"></div>
-
+<header>
+  <h1>🚗 トミカデザイナー v2</h1>
+  <div class="btns">
+    <button class="demo" id="demoBtn" onclick="toggleDemo()">▶ 走行デモ</button>
+    <button onclick="exportPNG()">PNG保存</button>
+    <button onclick="exportSVG()">SVG保存</button>
+    <button onclick="saveJSON()">設定保存</button>
+    <button onclick="document.getElementById('loadFile').click()">読込</button>
+    <input type="file" id="loadFile" accept=".json" style="display:none" onchange="loadJSON(event)">
   </div>
-</div>
+</header>
 
-<div class="controls">
+<main>
+  <div class="preview">
+    <svg id="stage" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="demo-bar" id="demoBar">
+      <span>🏁 スピード</span>
+      <input type="range" id="demoSpeed" min="1" max="20" value="8">
+      <span id="speedLabel">8</span>
+    </div>
+  </div>
 
-  <select id="carType">
-    <option value="sport">🏎️ スポーツカー</option>
-    <option value="police">🚓 パトカー</option>
-    <option value="fire">🚒 消防車</option>
-    <option value="bus">🚌 バス</option>
-  </select>
+  <aside class="controls">
+    <div class="tabs">
+      <button class="tab active" data-panel="preset">プリセット</button>
+      <button class="tab" data-panel="shape">車体</button>
+      <button class="tab" data-panel="color">カラー</button>
+      <button class="tab" data-panel="wheel">ホイール</button>
+      <button class="tab" data-panel="deco">装飾</button>
+      <button class="tab" data-panel="decal">デカール</button>
+    </div>
 
-  <input
-    type="color"
-    id="colorPicker"
-    value="#ff0000"
-  >
+    <div class="panel active" id="panel-preset">
+      <div class="preset-grid">
+        <button onclick="loadPreset('sedan')">🚗 セダン</button>
+        <button onclick="loadPreset('suv')">🚙 SUV</button>
+        <button onclick="loadPreset('sports')">🏎️ スポーツ</button>
+        <button onclick="loadPreset('truck')">🚚 トラック</button>
+        <button onclick="loadPreset('van')">🚐 バン</button>
+        <button onclick="loadPreset('bus')">🚌 バス</button>
+        <button onclick="loadPreset('police')">🚓 パトカー</button>
+        <button onclick="loadPreset('fire')">🚒 消防車</button>
+        <button onclick="loadPreset('taxi')">🚕 タクシー</button>
+      </div>
+    </div>
 
-  <input
-    type="text"
-    id="nameInput"
-    placeholder="車の名前"
-  >
+    <div class="panel" id="panel-shape">
+      <div class="row"><label>ボディ長さ</label><input type="range" min="400" max="700" id="bodyLen"></div>
+      <div class="row"><label>ボディ高さ</label><input type="range" min="50" max="140" id="bodyH"></div>
+      <div class="row"><label>屋根の高さ</label><input type="range" min="30" max="120" id="roofH"></div>
+      <div class="row"><label>ボンネット長</label><input type="range" min="40" max="200" id="hoodLen"></div>
+      <div class="row"><label>トランク長</label><input type="range" min="30" max="200" id="trunkLen"></div>
+      <div class="row"><label>屋根前傾</label><input type="range" min="0" max="60" id="roofFrontSlope"></div>
+      <div class="row"><label>屋根後傾</label><input type="range" min="0" max="60" id="roofBackSlope"></div>
+    </div>
 
-  <button id="starBtn">
-    ⭐ ステッカー追加
-  </button>
+    <div class="panel" id="panel-color">
+      <div class="row"><label>ボディ色</label><input type="color" id="bodyColor"></div>
+      <div class="row"><label>屋根色</label><input type="color" id="roofColor"></div>
+      <div class="row"><label>窓ガラス色</label><input type="color" id="windowColor"></div>
+      <div class="row"><label>グリル色</label><input type="color" id="grilleColor"></div>
+      <div class="row"><label>ヘッドライト</label><input type="color" id="headColor"></div>
+      <div class="row"><label>テールライト</label><input type="color" id="tailColor"></div>
+      <div class="row"><label>2トーン使用</label><input type="checkbox" id="twoTone"></div>
+      <div class="row"><label>下半分の色</label><input type="color" id="lowerColor"></div>
+    </div>
 
-</div>
+    <div class="panel" id="panel-wheel">
+      <div class="row"><label>ホイール形状</label>
+        <select id="wheelStyle">
+          <option value="spoke5">5本スポーク</option>
+          <option value="spoke6">6本スポーク</option>
+          <option value="spoke8">8本スポーク</option>
+          <option value="mesh">メッシュ</option>
+          <option value="disk">ディスク</option>
+          <option value="star">スター</option>
+          <option value="turbine">タービン</option>
+          <option value="split5">ツインスポーク</option>
+          <option value="deepdish">ディープディッシュ</option>
+          <option value="offroad">オフロード</option>
+        </select>
+      </div>
+      <div class="row"><label>タイヤサイズ</label><input type="range" min="25" max="60" id="wheelSize"></div>
+      <div class="row"><label>ホイール色</label><input type="color" id="hubColor"></div>
+      <div class="row"><label>タイヤ色</label><input type="color" id="tireColor"></div>
+    </div>
+
+    <div class="panel" id="panel-deco">
+      <div class="row"><label>屋根装飾</label>
+        <select id="roofDeco">
+          <option value="none">なし</option>
+          <option value="siren">パトランプ</option>
+          <option value="spoiler">スポイラー</option>
+          <option value="rack">ルーフキャリア</option>
+          <option value="ladder">はしご（消防車）</option>
+        </select>
+      </div>
+      <div class="row"><label>ストライプ</label><input type="checkbox" id="stripeOn"></div>
+      <div class="row"><label>ストライプ色</label><input type="color" id="stripeColor"></div>
+      <div class="row"><label>ストライプ位置</label><input type="range" min="0" max="100" id="stripeY"></div>
+      <div class="row"><label>ストライプ幅</label><input type="range" min="2" max="30" id="stripeW"></div>
+      <div class="row"><label>ドアライン</label><input type="checkbox" id="doorLine" checked></div>
+      <div class="row"><label>サイドミラー</label><input type="checkbox" id="mirror" checked></div>
+    </div>
+
+    <div class="panel" id="panel-decal">
+      <div class="row"><label>テキスト</label><input type="text" id="decalText" placeholder="POLICE"></div>
+      <div class="row"><label>文字色</label><input type="color" id="decalColor"></div>
+      <div class="row"><label>文字サイズ</label><input type="range" min="10" max="60" id="decalSize"></div>
+      <div class="row"><label>X位置</label><input type="range" min="100" max="700" id="decalX"></div>
+      <div class="row"><label>Y位置</label><input type="range" min="100" max="300" id="decalY"></div>
+    </div>
+  </aside>
+</main>
 
 <script>
-const body = document.getElementById("body");
-const roof = document.getElementById("roof");
-const namePlate = document.getElementById("namePlate");
-const colorPicker = document.getElementById("colorPicker");
-const nameInput = document.getElementById("nameInput");
-const carType = document.getElementById("carType");
-const starBtn = document.getElementById("starBtn");
-const car = document.getElementById("car");
+/* ====== 状態 ====== */
+const state = {
+  bodyLen: 550, bodyH: 90, roofH: 70,
+  hoodLen: 100, trunkLen: 100,
+  roofFrontSlope: 25, roofBackSlope: 25,
+  bodyColor: '#e63946', roofColor: '#e63946',
+  windowColor: '#a8dadc', grilleColor: '#222',
+  headColor: '#fff7c2', tailColor: '#ff4444',
+  twoTone: false, lowerColor: '#222',
+  wheelStyle: 'spoke5', wheelSize: 40,
+  hubColor: '#bbb', tireColor: '#111',
+  roofDeco: 'none',
+  stripeOn: false, stripeColor: '#fff', stripeY: 50, stripeW: 10,
+  doorLine: true, mirror: true,
+  decalText: '', decalColor: '#fff', decalSize: 28,
+  decalX: 400, decalY: 200
+};
 
-colorPicker.addEventListener("input", () => {
-  body.style.background = colorPicker.value;
-  roof.style.background = colorPicker.value;
-});
+/* ====== プリセット ====== */
+const presets = {
+  sedan: { bodyLen:560, bodyH:90, roofH:60, hoodLen:130, trunkLen:120, roofFrontSlope:30, roofBackSlope:30, bodyColor:'#1d3557', roofColor:'#1d3557', windowColor:'#a8dadc', wheelSize:38, hubColor:'#ccc', wheelStyle:'spoke5', roofDeco:'none' },
+  suv: { bodyLen:580, bodyH:120, roofH:90, hoodLen:110, trunkLen:80, roofFrontSlope:15, roofBackSlope:10, bodyColor:'#2a9d8f', roofColor:'#2a9d8f', wheelSize:50, hubColor:'#888', wheelStyle:'offroad', roofDeco:'rack' },
+  sports: { bodyLen:600, bodyH:70, roofH:45, hoodLen:170, trunkLen:130, roofFrontSlope:50, roofBackSlope:50, bodyColor:'#e63946', roofColor:'#e63946', wheelSize:42, hubColor:'#222', wheelStyle:'turbine', roofDeco:'spoiler' },
+  truck: { bodyLen:680, bodyH:140, roofH:80, hoodLen:80, trunkLen:300, roofFrontSlope:20, roofBackSlope:0, bodyColor:'#457b9d', roofColor:'#457b9d', wheelSize:55, hubColor:'#888', wheelStyle:'disk', roofDeco:'none' },
+  van: { bodyLen:560, bodyH:140, roofH:100, hoodLen:80, trunkLen:50, roofFrontSlope:30, roofBackSlope:5, bodyColor:'#f4a261', roofColor:'#f4a261', wheelSize:42, hubColor:'#ccc', wheelStyle:'mesh', roofDeco:'none' },
+  bus: { bodyLen:700, bodyH:160, roofH:110, hoodLen:30, trunkLen:30, roofFrontSlope:10, roofBackSlope:10, bodyColor:'#ffb703', roofColor:'#ffb703', wheelSize:45, hubColor:'#666', wheelStyle:'disk', roofDeco:'none' },
+  police: { bodyLen:560, bodyH:90, roofH:60, hoodLen:130, trunkLen:120, roofFrontSlope:30, roofBackSlope:30, bodyColor:'#000', roofColor:'#000', lowerColor:'#fff', twoTone:true, wheelSize:38, hubColor:'#bbb', wheelStyle:'spoke5', roofDeco:'siren', decalText:'POLICE', decalColor:'#fff' },
+  fire: { bodyLen:650, bodyH:130, roofH:80, hoodLen:80, trunkLen:200, roofFrontSlope:20, roofBackSlope:5, bodyColor:'#d62828', roofColor:'#d62828', wheelSize:48, hubColor:'#888', wheelStyle:'disk', roofDeco:'ladder', decalText:'FIRE', decalColor:'#fff' },
+  taxi: { bodyLen:560, bodyH:90, roofH:60, hoodLen:130, trunkLen:120, roofFrontSlope:30, roofBackSlope:30, bodyColor:'#ffd60a', roofColor:'#ffd60a', wheelSize:38, hubColor:'#222', wheelStyle:'star', roofDeco:'siren' }
+};
 
-nameInput.addEventListener("input", () => {
-  namePlate.textContent = nameInput.value;
-});
+function loadPreset(name) {
+  Object.assign(state, presets[name]);
+  syncControls();
+  render();
+}
 
-function changeCar(type){
+/* ====== デモ状態 ====== */
+const demo = {
+  on: false, t: 0, speed: 8, bgOffset: 0, wheelAngle: 0, raf: null
+};
 
-  if(type==="sport"){
-    body.style.width="250px";
-    body.style.height="80px";
-    body.style.left="35px";
-    body.style.top="70px";
-    body.style.borderRadius="20px";
-
-    roof.style.width="130px";
-    roof.style.height="45px";
-    roof.style.left="95px";
-    roof.style.top="40px";
-  }
-
-  if(type==="police"){
-    body.style.width="250px";
-    body.style.height="80px";
-    body.style.left="35px";
-    body.style.top="70px";
-    body.style.borderRadius="12px";
-
-    roof.style.width="120px";
-    roof.style.height="45px";
-    roof.style.left="100px";
-    roof.style.top="40px";
-
-    body.style.background="#ffffff";
-    roof.style.background="#ffffff";
-  }
-
-  if(type==="fire"){
-    body.style.width="260px";
-    body.style.height="90px";
-    body.style.left="30px";
-    body.style.top="65px";
-    body.style.borderRadius="10px";
-
-    roof.style.width="110px";
-    roof.style.height="40px";
-    roof.style.left="100px";
-    roof.style.top="45px";
-
-    body.style.background="#d50000";
-    roof.style.background="#d50000";
-  }
-
-  if(type==="bus"){
-    body.style.width="280px";
-    body.style.height="100px";
-    body.style.left="20px";
-    body.style.top="55px";
-    body.style.borderRadius="10px";
-
-    roof.style.width="0";
-    roof.style.height="0";
-
-    body.style.background="#ffd600";
-    roof.style.background="#ffd600";
+function toggleDemo() {
+  demo.on = !demo.on;
+  const btn = document.getElementById('demoBtn');
+  const bar = document.getElementById('demoBar');
+  if (demo.on) {
+    btn.textContent = '■ 停止';
+    btn.classList.add('active');
+    bar.classList.add('show');
+    loop();
+  } else {
+    btn.textContent = '▶ 走行デモ';
+    btn.classList.remove('active');
+    bar.classList.remove('show');
+    cancelAnimationFrame(demo.raf);
+    render();
   }
 }
 
-carType.addEventListener("change", () => {
-  changeCar(carType.value);
-});
+function loop() {
+  if (!demo.on) return;
+  demo.t++;
+  demo.bgOffset = (demo.bgOffset + demo.speed) % 80;
+  demo.wheelAngle = (demo.wheelAngle + demo.speed * 4) % 360;
+  render();
+  demo.raf = requestAnimationFrame(loop);
+}
 
-starBtn.addEventListener("click", () => {
+/* ====== 描画 ====== */
+function render() {
+  const s = state;
+  const svg = document.getElementById('stage');
+  const cx = 400;
+  const groundY = 320;
+  const bounce = demo.on ? Math.sin(demo.t * 0.3) * 2 : 0;
+  const bodyTop = groundY - s.bodyH + bounce;
+  const bodyLeft = cx - s.bodyLen / 2;
+  const bodyRight = cx + s.bodyLen / 2;
+  const roofLeft = bodyLeft + s.hoodLen + s.roofFrontSlope;
+  const roofRight = bodyRight - s.trunkLen - s.roofBackSlope;
+  const roofTop = bodyTop - s.roofH;
 
-  const s = document.createElement("div");
-  s.className = "sticker";
-  s.textContent = "⭐";
+  const bodyPath = `
+    M ${bodyLeft} ${bodyTop + 20}
+    Q ${bodyLeft} ${bodyTop} ${bodyLeft + 20} ${bodyTop}
+    L ${bodyLeft + s.hoodLen} ${bodyTop}
+    L ${roofLeft} ${roofTop}
+    L ${roofRight} ${roofTop}
+    L ${bodyRight - s.trunkLen} ${bodyTop}
+    L ${bodyRight - 20} ${bodyTop}
+    Q ${bodyRight} ${bodyTop} ${bodyRight} ${bodyTop + 20}
+    L ${bodyRight} ${groundY - 10 + bounce}
+    Q ${bodyRight} ${groundY + bounce} ${bodyRight - 10} ${groundY + bounce}
+    L ${bodyLeft + 10} ${groundY + bounce}
+    Q ${bodyLeft} ${groundY + bounce} ${bodyLeft} ${groundY - 10 + bounce}
+    Z`;
 
-  s.style.left =
-    Math.random() * 240 + "px";
+  let twoToneRect = '';
+  if (s.twoTone) {
+    twoToneRect = `<rect x="${bodyLeft}" y="${bodyTop + s.bodyH/2}" width="${s.bodyLen}" height="${s.bodyH/2 + 10}" fill="${s.lowerColor}" clip-path="url(#bodyClip)"/>`;
+  }
 
-  s.style.top =
-    Math.random() * 120 + "px";
+  const winPath = `
+    M ${roofLeft + 5} ${roofTop + 8}
+    L ${roofRight - 5} ${roofTop + 8}
+    L ${bodyRight - s.trunkLen - 5} ${bodyTop - 5}
+    L ${bodyLeft + s.hoodLen + 5} ${bodyTop - 5}
+    Z`;
 
-  car.appendChild(s);
+  const wheelR = s.wheelSize;
+  const wheelY = groundY - wheelR + 10;
+  const wheelFx = bodyLeft + s.hoodLen + 20;
+  const wheelRx = bodyRight - s.trunkLen - 20;
 
-  let move = false;
+  let stripe = '';
+  if (s.stripeOn) {
+    const sy = bodyTop + (s.bodyH * s.stripeY / 100);
+    stripe = `<rect x="${bodyLeft}" y="${sy}" width="${s.bodyLen}" height="${s.stripeW}" fill="${s.stripeColor}" clip-path="url(#bodyClip)"/>`;
+  }
 
-  s.addEventListener("touchstart",()=>{
-    move = true;
+  const doorLine = s.doorLine
+    ? `<line x1="${cx}" y1="${bodyTop + 10}" x2="${cx}" y2="${groundY - 10 + bounce}" stroke="rgba(0,0,0,.4)" stroke-width="1.5"/>` : '';
+
+  const mirror = s.mirror
+    ? `<ellipse cx="${roofLeft - 5}" cy="${bodyTop + 5}" rx="8" ry="5" fill="${s.bodyColor}" stroke="rgba(0,0,0,.3)"/>` : '';
+
+  let roofDeco = '';
+  const roofMidX = (roofLeft + roofRight) / 2;
+  if (s.roofDeco === 'siren') {
+    const sirenBlink = demo.on && Math.floor(demo.t/10)%2===0;
+    roofDeco = `
+      <rect x="${roofMidX - 30}" y="${roofTop - 12}" width="60" height="12" rx="3" fill="#222"/>
+      <rect x="${roofMidX - 28}" y="${roofTop - 10}" width="26" height="8" fill="${sirenBlink?'#ff2222':'#660000'}"/>
+      <rect x="${roofMidX + 2}" y="${roofTop - 10}" width="26" height="8" fill="${sirenBlink?'#2222ff':'#000066'}"/>`;
+  } else if (s.roofDeco === 'spoiler') {
+    roofDeco = `<path d="M ${bodyRight - s.trunkLen + 10} ${bodyTop} L ${bodyRight - 5} ${bodyTop - 25} L ${bodyRight} ${bodyTop - 25} L ${bodyRight} ${bodyTop - 10} Z" fill="${s.bodyColor}" stroke="rgba(0,0,0,.3)"/>`;
+  } else if (s.roofDeco === 'rack') {
+    roofDeco = `
+      <rect x="${roofLeft + 10}" y="${roofTop - 6}" width="${roofRight - roofLeft - 20}" height="3" fill="#444"/>
+      <rect x="${roofLeft + 15}" y="${roofTop - 8}" width="3" height="8" fill="#444"/>
+      <rect x="${roofRight - 18}" y="${roofTop - 8}" width="3" height="8" fill="#444"/>`;
+  } else if (s.roofDeco === 'ladder') {
+    roofDeco = `
+      <rect x="${roofLeft}" y="${roofTop - 6}" width="${roofRight - roofLeft + 80}" height="6" fill="#888"/>
+      ${Array.from({length:8}).map((_,i)=>`<rect x="${roofLeft + 10 + i*20}" y="${roofTop - 6}" width="2" height="6" fill="#555"/>`).join('')}`;
+  }
+
+  const headlight = `<ellipse cx="${bodyLeft + 8}" cy="${bodyTop + 35}" rx="6" ry="8" fill="${s.headColor}" stroke="#fff" stroke-width="1"/>`;
+  const taillight = `<ellipse cx="${bodyRight - 8}" cy="${bodyTop + 35}" rx="6" ry="8" fill="${s.tailColor}" stroke="#fff" stroke-width="1"/>`;
+  const grille = `<rect x="${bodyLeft + 3}" y="${bodyTop + 50}" width="10" height="20" fill="${s.grilleColor}" rx="2"/>`;
+
+  const decal = s.decalText
+    ? `<text x="${s.decalX}" y="${s.decalY + bounce}" font-size="${s.decalSize}" font-weight="bold" fill="${s.decalColor}" text-anchor="middle" stroke="rgba(0,0,0,.4)" stroke-width="1">${escapeHtml(s.decalText)}</text>` : '';
+
+  // 背景（デモ時はスクロール）
+  const bg = renderBackground();
+
+  svg.innerHTML = `
+    <defs>
+      <clipPath id="bodyClip"><path d="${bodyPath}"/></clipPath>
+    </defs>
+    ${bg}
+    <ellipse cx="${cx}" cy="${groundY + 15}" rx="${s.bodyLen/2}" ry="8" fill="rgba(0,0,0,.3)"/>
+    <path d="${bodyPath}" fill="${s.bodyColor}" stroke="rgba(0,0,0,.4)" stroke-width="2"/>
+    ${twoToneRect}
+    ${stripe}
+    <path d="M ${roofLeft} ${roofTop} L ${roofRight} ${roofTop} L ${bodyRight - s.trunkLen} ${bodyTop} L ${bodyLeft + s.hoodLen} ${bodyTop} Z" fill="${s.roofColor}" stroke="rgba(0,0,0,.4)" stroke-width="1.5"/>
+    <path d="${winPath}" fill="${s.windowColor}" stroke="rgba(0,0,0,.5)" stroke-width="1.5"/>
+    ${doorLine}
+    ${grille}
+    ${headlight}
+    ${taillight}
+    ${mirror}
+    ${roofDeco}
+    ${decal}
+    ${renderWheel(wheelFx, wheelY, wheelR)}
+    ${renderWheel(wheelRx, wheelY, wheelR)}
+  `;
+}
+
+/* ====== 背景 ====== */
+function renderBackground() {
+  if (!demo.on) {
+    // 静止時：シンプル道路
+    return `
+      <rect x="0" y="280" width="800" height="120" fill="#444"/>
+      <rect x="0" y="278" width="800" height="3" fill="#fff"/>
+    `;
+  }
+  // 走行時：白線スクロール + 雲
+  const dashes = [];
+  for (let x = -80; x < 880; x += 80) {
+    dashes.push(`<rect x="${x + demo.bgOffset}" y="345" width="40" height="6" fill="#fff"/>`);
+  }
+  const cloudOffset = (demo.t * 0.5) % 900;
+  return `
+    <rect x="0" y="0" width="800" height="280" fill="#87ceeb"/>
+    <ellipse cx="${100 - cloudOffset + 800}" cy="60" rx="40" ry="15" fill="rgba(255,255,255,.9)"/>
+    <ellipse cx="${400 - cloudOffset + 800}" cy="40" rx="50" ry="18" fill="rgba(255,255,255,.8)"/>
+    <ellipse cx="${700 - cloudOffset + 800}" cy="80" rx="35" ry="13" fill="rgba(255,255,255,.85)"/>
+    <ellipse cx="${100 - cloudOffset}" cy="60" rx="40" ry="15" fill="rgba(255,255,255,.9)"/>
+    <ellipse cx="${400 - cloudOffset}" cy="40" rx="50" ry="18" fill="rgba(255,255,255,.8)"/>
+    <ellipse cx="${700 - cloudOffset}" cy="80" rx="35" ry="13" fill="rgba(255,255,255,.85)"/>
+    <rect x="0" y="280" width="800" height="120" fill="#444"/>
+    ${dashes.join('')}
+  `;
+}
+
+/* ====== ホイール描画（10種類） ====== */
+function renderWheel(cx, cy, r) {
+  const s = state;
+  const hubR = r * 0.6;
+  const ang = demo.on ? demo.wheelAngle : 0;
+  let inner = '';
+
+  switch (s.wheelStyle) {
+    case 'spoke5': inner = spokes(5, hubR, s.hubColor, 4); break;
+    case 'spoke6': inner = spokes(6, hubR, s.hubColor, 4); break;
+    case 'spoke8': inner = spokes(8, hubR, s.hubColor, 3); break;
+    case 'mesh':
+      inner = spokes(6, hubR, s.hubColor, 2)
+            + `<circle cx="0" cy="0" r="${hubR*0.6}" fill="none" stroke="${s.hubColor}" stroke-width="2"/>`
+            + `<circle cx="0" cy="0" r="${hubR*0.3}" fill="none" stroke="${s.hubColor}" stroke-width="2"/>`;
+      break;
+    case 'disk':
+      inner = `<circle cx="0" cy="0" r="${hubR}" fill="${s.hubColor}"/>
+               <circle cx="0" cy="0" r="${hubR*0.6}" fill="none" stroke="#222" stroke-width="1.5"/>`;
+      break;
+    case 'star': {
+      let pts = '';
+      for (let i = 0; i < 10; i++) {
+        const a = (i / 10) * Math.PI * 2 - Math.PI/2;
+        const rr = i % 2 === 0 ? hubR : hubR * 0.45;
+        pts += `${Math.cos(a)*rr},${Math.sin(a)*rr} `;
+      }
+      inner = `<polygon points="${pts}" fill="${s.hubColor}"/>`;
+      break;
+    }
+    case 'turbine': {
+      // 湾曲ブレード
+      let blades = '';
+      for (let i = 0; i < 6; i++) {
+        const a = (i / 6) * 360;
+        blades += `<path d="M 0 0 Q ${hubR*0.5} ${hubR*0.3} ${hubR} 0 L ${hubR*0.9} ${-hubR*0.3} Q ${hubR*0.4} ${-hubR*0.1} 0 0 Z" fill="${s.hubColor}" transform="rotate(${a})"/>`;
+      }
+      inner = blades;
+      break;
+    }
+    case 'split5': {
+      // 5本ツインスポーク
+      let g = '';
+      for (let i = 0; i < 5; i++) {
+        const a = (i / 5) * 360;
+        g += `<g transform="rotate(${a})">
+                <line x1="-3" y1="0" x2="${-hubR*0.3}" y2="${-hubR}" stroke="${s.hubColor}" stroke-width="3" stroke-linecap="round"/>
+                <line x1="3" y1="0" x2="${hubR*0.3}" y2="${-hubR}" stroke="${s.hubColor}" stroke-width="3" stroke-linecap="round"/>
+              </g>`;
+      }
+      inner = g;
+      break;
+    }
+    case 'deepdish':
+      inner = `<circle cx="0" cy="0" r="${hubR}" fill="${s.hubColor}"/>
+               <circle cx="0" cy="0" r="${hubR*0.85}" fill="#222"/>
+               ${spokes(5, hubR*0.8, s.hubColor, 5)}`;
+      break;
+    case 'offroad':
+      // 太いゴツゴツしたパターン
+      inner = spokes(6, hubR*0.7, s.hubColor, 7)
+            + `<circle cx="0" cy="0" r="${hubR*0.35}" fill="${s.hubColor}"/>`;
+      break;
+  }
+
+  // タイヤトレッド（回転すると見える縁の線）
+  let tread = '';
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * 360 + ang;
+    tread += `<rect x="${r-3}" y="-1.5" width="3" height="3" fill="#333" transform="rotate(${a})"/>`;
+  }
+
+  return `
+    <g transform="translate(${cx},${cy})">
+      <circle r="${r}" fill="${s.tireColor}"/>
+      <circle r="${r*0.7}" fill="#333"/>
+      <g transform="rotate(${ang})">
+        ${tread}
+        ${inner}
+      </g>
+      <circle r="${r*0.12}" fill="${s.hubColor}"/>
+    </g>
+  `;
+}
+
+function spokes(n, r, color, w) {
+  let g = '';
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * 360;
+    g += `<line x1="0" y1="0" x2="0" y2="${-r}" stroke="${color}" stroke-width="${w}" stroke-linecap="round" transform="rotate(${a})"/>`;
+  }
+  return g;
+}
+
+function escapeHtml(t){return t.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);}
+
+/* ====== コントロール ====== */
+const controlIds = ['bodyLen','bodyH','roofH','hoodLen','trunkLen','roofFrontSlope','roofBackSlope',
+  'bodyColor','roofColor','windowColor','grilleColor','headColor','tailColor','lowerColor',
+  'wheelStyle','wheelSize','hubColor','tireColor','roofDeco','stripeColor','stripeY','stripeW',
+  'decalText','decalColor','decalSize','decalX','decalY'];
+const checkboxIds = ['twoTone','stripeOn','doorLine','mirror'];
+
+function syncControls() {
+  controlIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = state[id];
   });
-
-  s.addEventListener("touchmove",(e)=>{
-    if(!move) return;
-
-    const rect =
-      car.getBoundingClientRect();
-
-    const x =
-      e.touches[0].clientX
-      - rect.left;
-
-    const y =
-      e.touches[0].clientY
-      - rect.top;
-
-    s.style.left = x + "px";
-    s.style.top = y + "px";
+  checkboxIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.checked = state[id];
   });
+}
 
-  s.addEventListener("touchend",()=>{
-    move = false;
+function bindControls() {
+  controlIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', () => {
+      state[id] = el.type === 'range' ? Number(el.value) : el.value;
+      render();
+    });
   });
+  checkboxIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('change', () => { state[id] = el.checked; render(); });
+  });
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+      document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      document.getElementById('panel-' + t.dataset.panel).classList.add('active');
+    });
+  });
+  document.getElementById('demoSpeed').addEventListener('input', e => {
+    demo.speed = Number(e.target.value);
+    document.getElementById('speedLabel').textContent = demo.speed;
+  });
+}
 
-});
+/* ====== 出力 ====== */
+function exportSVG() {
+  const svg = document.getElementById('stage');
+  const blob = new Blob([svg.outerHTML], {type:'image/svg+xml'});
+  download(blob, 'tomica.svg');
+}
+function exportPNG() {
+  const svg = document.getElementById('stage');
+  const data = new XMLSerializer().serializeToString(svg);
+  const img = new Image();
+  img.onload = () => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1600; canvas.height = 800;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#87ceeb'; ctx.fillRect(0,0,1600,800);
+    ctx.drawImage(img, 0, 0, 1600, 800);
+    canvas.toBlob(b => download(b, 'tomica.png'));
+  };
+  img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(data)));
+}
+function saveJSON() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  download(blob, 'tomica-config.json');
+}
+function loadJSON(e) {
+  const file = e.target.files[0];
+  const reader = new FileReader();
+  reader.onload = ev => {
+    Object.assign(state, JSON.parse(ev.target.result));
+    syncControls(); render();
+  };
+  reader.readAsText(file);
+}
+function download(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name; a.click();
+}
 
-changeCar("sport");
+/* ====== 起動 ====== */
+syncControls();
+bindControls();
+render();
 </script>
-
 </body>
 </html>
