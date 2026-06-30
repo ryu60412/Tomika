@@ -3,21 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=1024, initial-scale=1.0, user-scalable=no">
-<title>マイトミカつくろう！</title>
+<title>マイトミカつくろう！v6</title>
 <style>
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
 html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif; background: #ffd966; font-weight: 700; }
 .app { width: 100vw; height: 100vh; display: grid; grid-template-rows: 70px 1fr 90px; }
 header { background: #ee5253; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
-header h1 { margin: 0; font-size: 26px; letter-spacing: 2px; }
-.header-btns button { background: #fff; color: #ee5253; border: 0; padding: 10px 16px; border-radius: 30px; font-size: 16px; font-weight: 900; cursor: pointer; margin-left: 6px; box-shadow: 0 3px 0 #c33; }
+header h1 { margin: 0; font-size: 24px; letter-spacing: 2px; }
+.header-btns { display: flex; gap: 6px; }
+.header-btns button { background: #fff; color: #ee5253; border: 0; padding: 10px 14px; border-radius: 30px; font-size: 14px; font-weight: 900; cursor: pointer; box-shadow: 0 3px 0 #c33; }
 .header-btns button:active { transform: translateY(2px); box-shadow: 0 1px 0 #c33; }
+.header-btns button.on { background: #06d6a0; color: #fff; }
 main { display: grid; grid-template-columns: 1fr 380px; gap: 14px; padding: 14px; overflow: hidden; }
-.preview { background: linear-gradient(180deg, #87ceeb 0%, #b8e0f0 60%, #6fa050 60%, #4a7530 100%); border-radius: 20px; position: relative; overflow: hidden; border: 6px solid #fff; }
+.preview { border-radius: 20px; position: relative; overflow: hidden; border: 6px solid #fff; }
 .preview svg { width: 100%; height: 100%; display: block; }
 .demo-bar { position: absolute; bottom: 12px; left: 12px; right: 12px; background: rgba(0,0,0,.7); padding: 10px 16px; border-radius: 30px; display: none; align-items: center; gap: 12px; color: #fff; font-size: 18px; }
 .demo-bar.show { display: flex; }
 .demo-bar input[type=range] { flex: 1; height: 30px; }
+.bg-bar { position: absolute; top: 10px; left: 10px; display: flex; gap: 4px; flex-wrap: wrap; max-width: 70%; }
+.bg-btn { background: rgba(0,0,0,.6); color: #fff; border: 2px solid #fff; padding: 6px 10px; border-radius: 20px; font-size: 13px; cursor: pointer; font-weight: 900; }
+.bg-btn.active { background: #ee5253; }
 .panel { background: #fff; border-radius: 20px; padding: 16px; overflow-y: auto; border: 4px solid #ffe066; }
 .panel h2 { margin: 0 0 12px; font-size: 22px; color: #ee5253; text-align: center; }
 .car-tab-bar { display: flex; gap: 6px; margin-bottom: 10px; }
@@ -54,14 +59,17 @@ footer { background: #fff; padding: 10px 20px; display: flex; align-items: cente
 .btn-save { background: #4ecdc4; }
 .btn-again { background: #ff6b6b; }
 .btn-play { background: #ff6b6b; }
+.btn-horn { background: #f39c12; }
 </style>
 </head>
 <body>
 
 <div class="app">
 <header>
-<h1>🚗 マイトミカ つくろう！</h1>
+<h1>🚗 マイトミカ つくろう！v6</h1>
 <div class="header-btns">
+<button id="bgmBtn" onclick="toggleBGM()">🎵 BGM</button>
+<button id="sfxBtn" class="on" onclick="toggleSFX()">🔊 おと</button>
 <button onclick="saveJSON()">ほぞん</button>
 <button onclick="document.getElementById('loadFile').click()">よみこむ</button>
 <input type="file" id="loadFile" accept=".json" style="display:none" onchange="loadJSON(event)">
@@ -69,10 +77,12 @@ footer { background: #fff; padding: 10px 20px; display: flex; align-items: cente
 </header>
 
 <main>
-<div class="preview">
+<div class="preview" id="preview">
 <svg id="stage" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg"></svg>
+<div class="bg-bar" id="bgBar"></div>
 <div class="demo-bar" id="demoBar">
-<span>🏁 はやさ</span>
+<button onclick="hornBeep()" style="background:#f39c12;border:0;border-radius:50%;width:46px;height:46px;font-size:24px;cursor:pointer">📯</button>
+<span>🏁</span>
 <input type="range" id="demoSpeed" min="1" max="20" value="10">
 <span style="font-size:24px">⚡</span>
 </div>
@@ -88,6 +98,74 @@ footer { background: #fff; padding: 10px 20px; display: flex; align-items: cente
 </div>
 
 <script>
+/* ===== 音声システム ===== */
+const audio = { ctx:null, sfxOn:true, bgmOn:false, bgmTimer:null, bgmNotes:[], bgmIdx:0 };
+function initAudio() {
+  if (audio.ctx) return;
+  try { audio.ctx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){}
+}
+function tone(freq, dur=0.1, type='sine', vol=0.15, when=0) {
+  if (!audio.sfxOn && !arguments[5]) return;
+  initAudio();
+  if (!audio.ctx) return;
+  const t = audio.ctx.currentTime + when;
+  const o = audio.ctx.createOscillator();
+  const g = audio.ctx.createGain();
+  o.type = type; o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g); g.connect(audio.ctx.destination);
+  o.start(t); o.stop(t + dur);
+}
+const sfx = {
+  tap: () => tone(880, 0.06, 'square', 0.08),
+  ok: () => { tone(660,0.08,'sine',0.15); tone(880,0.1,'sine',0.15,0.08); },
+  car: () => { tone(220,0.15,'sawtooth',0.1); tone(280,0.2,'sawtooth',0.1,0.1); },
+  finish: () => { tone(523,0.1); tone(659,0.1,'sine',0.15,0.1); tone(784,0.2,'sine',0.15,0.2); tone(1047,0.3,'sine',0.15,0.4); },
+  horn: () => { tone(440,0.2,'square',0.2); tone(330,0.3,'square',0.2,0.15); },
+  engine: () => { tone(80,0.5,'sawtooth',0.05); tone(120,0.3,'sawtooth',0.05,0.1); }
+};
+function hornBeep() { initAudio(); if(audio.ctx) audio.ctx.resume(); sfx.horn(); }
+function toggleSFX() {
+  audio.sfxOn = !audio.sfxOn;
+  document.getElementById('sfxBtn').classList.toggle('on', audio.sfxOn);
+  if (audio.sfxOn) sfx.tap();
+}
+
+/* ===== BGM ===== */
+const BGM_TRACKS = {
+  pop: [['C4',300],['E4',300],['G4',300],['E4',300],['F4',300],['A4',300],['G4',300],['E4',300],['D4',300],['F4',300],['E4',300],['C4',600]],
+  excite: [['C5',200],['G4',200],['C5',200],['E5',200],['G5',400],['F5',200],['E5',200],['D5',200],['C5',400]],
+  race: [['E4',150],['G4',150],['B4',150],['E5',300],['D5',150],['B4',150],['G4',300],['A4',150],['B4',150],['C5',300],['G4',300]]
+};
+const NOTES = { 'C4':261.63,'D4':293.66,'E4':329.63,'F4':349.23,'G4':392,'A4':440,'B4':493.88,'C5':523.25,'D5':587.33,'E5':659.25,'F5':698.46,'G5':783.99 };
+function toggleBGM() {
+  audio.bgmOn = !audio.bgmOn;
+  document.getElementById('bgmBtn').classList.toggle('on', audio.bgmOn);
+  if (audio.bgmOn) startBGM(); else stopBGM();
+}
+function startBGM() {
+  initAudio(); if(audio.ctx) audio.ctx.resume();
+  const trackName = state.bgType === 'race' ? 'race' : (state.bgType === 'city' ? 'excite' : 'pop');
+  audio.bgmNotes = BGM_TRACKS[trackName];
+  audio.bgmIdx = 0;
+  playBGMNote();
+}
+function stopBGM() {
+  clearTimeout(audio.bgmTimer);
+  audio.bgmTimer = null;
+}
+function playBGMNote() {
+  if (!audio.bgmOn) return;
+  const [note, dur] = audio.bgmNotes[audio.bgmIdx];
+  const freq = NOTES[note] || 440;
+  tone(freq, dur/1000, 'triangle', 0.04, 0, true);
+  audio.bgmIdx = (audio.bgmIdx + 1) % audio.bgmNotes.length;
+  audio.bgmTimer = setTimeout(playBGMNote, dur);
+}
+
+/* ===== ステップ ===== */
 const STEPS = [
   {id:'category',label:'しゅるい'},
   {id:'body',label:'くるま'},
@@ -102,7 +180,17 @@ const state = {
   category:'normal', bodyType:null,
   bodyColor:'#e63946', subColor:'#ffffff',
   wheelStyle:'spoke5', hubColor:'#cccccc',
-  decalText:''
+  decalText:'', bgType:'road'
+};
+
+/* ===== 背景 ===== */
+const BACKGROUNDS = {
+  road:    {label:'🛣️ どうろ'},
+  city:    {label:'🏙️ まち'},
+  race:    {label:'🏁 サーキット'},
+  night:   {label:'🌃 よる'},
+  site:    {label:'🏗️ こうじ'},
+  beach:   {label:'🌊 うみ'}
 };
 
 const CATEGORIES = {
@@ -117,21 +205,24 @@ const CARS = {
     pillars:[430], wheelF:{x:230,y:300,r:34}, wheelR:{x:610,y:300,r:34},
     archF:{x:230,y:302,r:56}, archR:{x:610,y:302,r:56},
     headlight:{x:135,y:280}, taillight:{x:670,y:268},
-    grille:{x:110,y:287,w:14,h:14}, doorHandles:[{x:400,y:255}], mirror:{x:370,y:208}, bodyStyle:'sedan'},
+    grille:{x:110,y:287,w:14,h:14}, doorHandles:[{x:400,y:255}], mirror:{x:370,y:208}, bodyStyle:'sedan',
+    panelLines:[{x1:400,y1:230,x2:400,y2:280}], hood:true, foglight:{x:160,y:295}},
   sedan:{icon:'🚗',label:'セダン',defaultColor:'#1d3557',defaultSub:'#ffffff',
     body:()=>`M 130 310 L 130 270 Q 130 258 142 254 L 175 244 L 220 232 L 270 220 L 310 195 L 345 158 L 490 158 L 525 195 L 560 218 L 615 230 L 660 244 Q 678 250 678 262 L 678 310 Z`,
     window:()=>`M 342 175 L 488 175 L 522 220 L 312 220 Z`,
     pillars:[410], wheelF:{x:215,y:300,r:36}, wheelR:{x:600,y:300,r:36},
     archF:{x:215,y:302,r:60}, archR:{x:600,y:302,r:60},
     headlight:{x:148,y:258}, taillight:{x:665,y:255},
-    grille:{x:135,y:268,w:14,h:24}, doorHandles:[{x:345,y:228},{x:475,y:228}], mirror:{x:330,y:200}, bodyStyle:'sedan'},
+    grille:{x:135,y:268,w:14,h:24}, doorHandles:[{x:345,y:228},{x:475,y:228}], mirror:{x:330,y:200}, bodyStyle:'sedan',
+    panelLines:[{x1:405,y1:220,x2:405,y2:280},{x1:280,y1:230,x2:280,y2:280},{x1:540,y1:230,x2:540,y2:280}], chrome:true},
   suv:{icon:'🚙',label:'SUV',defaultColor:'#2a9d8f',defaultSub:'#1a1a1a',
     body:()=>`M 120 310 L 120 268 Q 120 256 130 252 L 160 240 L 200 230 L 245 222 L 280 180 L 305 138 L 510 138 L 540 175 L 555 222 L 605 232 L 655 244 L 678 254 Q 688 258 688 268 L 688 310 Z`,
     window:()=>`M 302 155 L 512 155 L 545 220 L 285 220 Z`,
     pillars:[405], wheelF:{x:215,y:300,r:40}, wheelR:{x:605,y:300,r:40},
     archF:{x:215,y:302,r:62}, archR:{x:605,y:302,r:62},
     headlight:{x:148,y:258}, taillight:{x:670,y:250},
-    grille:{x:125,y:265,w:18,h:30}, doorHandles:[{x:340,y:215},{x:470,y:215}], mirror:{x:300,y:180}, bodyStyle:'suv'},
+    grille:{x:125,y:265,w:18,h:30}, doorHandles:[{x:340,y:215},{x:470,y:215}], mirror:{x:300,y:180}, bodyStyle:'suv',
+    panelLines:[{x1:405,y1:220,x2:405,y2:280}], chrome:true},
   mini:{icon:'🚗',label:'ミニカー',defaultColor:'#f4a261',defaultSub:'#ffffff',
     body:()=>`M 170 310 L 170 268 Q 170 256 182 252 L 210 244 L 240 232 L 270 170 L 295 150 L 510 150 L 535 170 L 565 232 L 600 244 L 625 252 Q 638 256 638 268 L 638 310 Z`,
     window:()=>`M 268 165 L 535 165 L 562 222 L 270 222 Z`,
@@ -145,21 +236,24 @@ const CARS = {
     pillars:[], wheelF:{x:230,y:300,r:34}, wheelR:{x:610,y:300,r:34},
     archF:{x:230,y:302,r:56}, archR:{x:610,y:302,r:56},
     headlight:{x:140,y:282}, taillight:{x:670,y:272},
-    grille:{x:115,y:289,w:14,h:14}, doorHandles:[{x:400,y:260}], mirror:{x:340,y:235}, bodyStyle:'sports'},
+    grille:{x:115,y:289,w:14,h:14}, doorHandles:[{x:400,y:260}], mirror:{x:340,y:235}, bodyStyle:'sports',
+    chrome:true},
   wagon:{icon:'🚙',label:'ワゴン',defaultColor:'#6c5ce7',defaultSub:'#ffffff',
     body:()=>`M 115 310 L 115 268 Q 115 256 128 252 L 158 244 L 195 232 L 230 220 L 265 150 L 290 130 L 660 130 L 685 145 L 698 168 L 698 310 Z`,
     window:()=>`M 288 145 L 658 145 L 658 220 L 260 220 Z`,
     pillars:[395,525], wheelF:{x:210,y:300,r:36}, wheelR:{x:610,y:300,r:36},
     archF:{x:210,y:302,r:58}, archR:{x:610,y:302,r:58},
     headlight:{x:143,y:258}, taillight:{x:688,y:185},
-    grille:{x:122,y:265,w:16,h:24}, doorHandles:[{x:340,y:230},{x:480,y:230}], mirror:{x:280,y:160}, bodyStyle:'wagon'},
+    grille:{x:122,y:265,w:16,h:24}, doorHandles:[{x:340,y:230},{x:480,y:230}], mirror:{x:280,y:160}, bodyStyle:'wagon',
+    panelLines:[{x1:395,y1:215,x2:395,y2:280},{x1:525,y1:215,x2:525,y2:280}]},
   classic:{icon:'🚙',label:'クラシックカー',defaultColor:'#8b4513',defaultSub:'#ffd966',
     body:()=>`M 125 310 L 125 290 Q 125 278 138 276 L 170 268 L 200 252 L 235 240 L 270 180 L 295 145 L 320 130 L 480 130 L 510 145 L 540 180 L 580 240 L 615 252 L 650 268 Q 665 276 665 290 L 665 310 Z`,
     window:()=>`M 295 158 L 510 158 L 540 225 L 270 225 Z`,
     pillars:[400], wheelF:{x:220,y:300,r:36}, wheelR:{x:580,y:300,r:36},
     archF:{x:220,y:302,r:62}, archR:{x:580,y:302,r:62},
     headlight:{x:165,y:255}, taillight:{x:625,y:250},
-    grille:{x:130,y:262,w:16,h:32}, doorHandles:[{x:400,y:240}], mirror:{x:295,y:170}, bodyStyle:'classic'},
+    grille:{x:130,y:262,w:16,h:32}, doorHandles:[{x:400,y:240}], mirror:{x:295,y:170}, bodyStyle:'classic',
+    chrome:true},
   race:{icon:'🏁',label:'レーシングカー',defaultColor:'#fbc531',defaultSub:'#e84118',
     body:()=>`M 100 310 L 100 295 L 130 285 L 200 275 L 280 258 L 360 235 L 410 215 L 470 215 L 530 225 L 600 245 L 680 268 Q 700 274 700 285 L 700 310 Z`,
     window:()=>`M 415 220 L 465 220 L 470 245 L 405 245 Z`,
@@ -187,21 +281,21 @@ const CARS = {
     pillars:[410], wheelF:{x:215,y:300,r:36}, wheelR:{x:600,y:300,r:36},
     archF:{x:215,y:302,r:60}, archR:{x:600,y:302,r:60},
     headlight:{x:148,y:258}, taillight:{x:665,y:255},
-    grille:{x:135,y:268,w:14,h:24}, doorHandles:[{x:345,y:228},{x:475,y:228}], mirror:{x:330,y:200}, bodyStyle:'sedan', roofItem:'siren', sideStripe:'middle'},
+    grille:{x:135,y:268,w:14,h:24}, doorHandles:[{x:345,y:228},{x:475,y:228}], mirror:{x:330,y:200}, bodyStyle:'sedan', roofItem:'siren', sideStripe:'middle', sirenSfx:true},
   firetruck:{icon:'🚒',label:'しょうぼうしゃ',defaultColor:'#c8201a',defaultSub:'#ffffff',defaultDecal:'FIRE',
     body:()=>`M 95 310 L 95 270 Q 95 258 108 254 L 135 246 L 165 235 L 200 180 L 215 130 L 340 130 L 360 180 L 360 235 L 380 235 L 380 145 L 700 145 L 700 310 Z`,
     window:()=>`M 218 148 L 338 148 L 358 220 L 210 220 Z`,
     pillars:[280], wheelF:{x:190,y:298,r:38}, wheelR:{x:585,y:298,r:38},
     archF:{x:190,y:302,r:62}, archR:{x:585,y:302,r:62},
     headlight:{x:108,y:254}, taillight:{x:692,y:175},
-    grille:{x:98,y:262,w:22,h:36}, doorHandles:[{x:280,y:218}], mirror:{x:215,y:155}, roofItem:'fireLadder', bodyStyle:'truck'},
+    grille:{x:98,y:262,w:22,h:36}, doorHandles:[{x:280,y:218}], mirror:{x:215,y:155}, roofItem:'fireLadder', bodyStyle:'truck', sirenSfx:true},
   ambulance:{icon:'🚑',label:'きゅうきゅうしゃ',defaultColor:'#ffffff',defaultSub:'#d62828',defaultDecal:'救急',
     body:()=>`M 115 310 L 115 268 Q 115 256 128 252 L 155 244 L 185 230 L 215 150 L 250 130 L 660 130 L 685 140 L 698 168 L 698 310 Z`,
     window:()=>`M 248 148 L 290 148 L 290 215 L 218 215 Z M 310 160 L 660 160 L 660 215 L 310 215 Z`,
     pillars:[300,460,600], wheelF:{x:210,y:298,r:34}, wheelR:{x:610,y:298,r:34},
     archF:{x:210,y:302,r:58}, archR:{x:610,y:302,r:58},
     headlight:{x:140,y:258}, taillight:{x:688,y:185},
-    grille:{x:120,y:265,w:16,h:25}, doorHandles:[{x:280,y:225},{x:560,y:225}], mirror:{x:240,y:160}, bodyStyle:'van', roofItem:'siren', sideStripe:'cross'},
+    grille:{x:120,y:265,w:16,h:25}, doorHandles:[{x:280,y:225},{x:560,y:225}], mirror:{x:240,y:160}, bodyStyle:'van', roofItem:'siren', sideStripe:'cross', sirenSfx:true},
   excavator:{icon:'🚜',label:'ショベルカー',defaultColor:'#ffb703',defaultSub:'#1a1a1a',
     body:()=>`M 180 310 L 180 240 L 250 240 L 250 175 L 300 145 L 420 145 L 450 175 L 450 245 L 480 245 L 480 310 Z`,
     window:()=>`M 305 160 L 415 160 L 440 220 L 280 220 Z`,
@@ -303,6 +397,19 @@ function renderStepDots() {
   ).join('');
 }
 
+function renderBgBar() {
+  document.getElementById('bgBar').innerHTML = Object.entries(BACKGROUNDS).map(([k,v])=>
+    `<button class="bg-btn ${state.bgType===k?'active':''}" onclick="setBg('${k}')">${v.label}</button>`
+  ).join('');
+}
+function setBg(k) {
+  state.bgType = k;
+  sfx.tap();
+  renderBgBar();
+  render();
+  if (audio.bgmOn) { stopBGM(); startBGM(); }
+}
+
 function renderPanel() {
   const step = STEPS[currentStep];
   const panel = document.getElementById('panel');
@@ -358,7 +465,7 @@ function renderPanel() {
       <p style="text-align:center;font-size:14px;color:#666;margin:14px 0 10px">よく つかうもの</p>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
         ${['POLICE','FIRE','救急','TAXI','SCHOOL','POST','','GO!','★'].map(t=>`
-          <button onclick="state.decalText='${t}';renderPanel();render()" style="padding:10px;border:3px solid #ffd966;background:#fff;border-radius:10px;font-size:16px;font-weight:900;cursor:pointer">${t||'なし'}</button>
+          <button onclick="state.decalText='${t}';sfx.tap();renderPanel();render()" style="padding:10px;border:3px solid #ffd966;background:#fff;border-radius:10px;font-size:16px;font-weight:900;cursor:pointer">${t||'なし'}</button>
         `).join('')}
       </div>`;
   } else if (step.id === 'finish') {
@@ -370,7 +477,8 @@ function renderPanel() {
     </div>
     <div class="finish-actions">
       <button class="btn-play" onclick="toggleDemo()">${demo.on?'■ とめる':'🏁 はしらせる！'}</button>
-      <button class="btn-save" onclick="exportPNG()">📷 がぞうで ほぞん</button>
+      <button class="btn-horn" onclick="hornBeep()">📯 クラクション</button>
+      <button class="btn-save" onclick="exportPNG();sfx.ok()">📷 がぞうで ほぞん</button>
       <button class="btn-again" onclick="resetAll()">🔄 もういっかい</button>
     </div>`;
   }
@@ -393,7 +501,7 @@ function updateNavButtons() {
   }
 }
 
-function selectCategory(c) { state.category = c; renderPanel(); }
+function selectCategory(c) { state.category = c; sfx.tap(); renderPanel(); }
 function selectBody(t) {
   state.bodyType = t;
   const car = CARS[t];
@@ -401,13 +509,14 @@ function selectBody(t) {
   state.subColor = car.defaultSub;
   state.decalText = car.defaultDecal || '';
   if (['excavator','bulldozer'].includes(t)) state.wheelStyle = 'offroad';
+  sfx.car();
   renderPanel(); render();
 }
-function setColor(which, c) { if (which==='body') state.bodyColor=c; else state.subColor=c; renderPanel(); render(); }
-function setWheel(v) { state.wheelStyle = v; renderPanel(); render(); }
-function setHub(c) { state.hubColor = c; renderPanel(); render(); }
-function nextStep() { if (currentStep < STEPS.length-1) { currentStep++; renderStepDots(); renderPanel(); render(); } }
-function prevStep() { if (currentStep > 0) { currentStep--; renderStepDots(); renderPanel(); render(); } }
+function setColor(which, c) { if (which==='body') state.bodyColor=c; else state.subColor=c; sfx.tap(); renderPanel(); render(); }
+function setWheel(v) { state.wheelStyle = v; sfx.tap(); renderPanel(); render(); }
+function setHub(c) { state.hubColor = c; sfx.tap(); renderPanel(); render(); }
+function nextStep() { if (currentStep < STEPS.length-1) { currentStep++; if (currentStep === STEPS.length-1) sfx.finish(); else sfx.tap(); renderStepDots(); renderPanel(); render(); } }
+function prevStep() { if (currentStep > 0) { currentStep--; sfx.tap(); renderStepDots(); renderPanel(); render(); } }
 function resetAll() { currentStep = 0; state.bodyType = null; state.decalText = ''; if (demo.on) toggleDemo(); renderStepDots(); renderPanel(); render(); }
 
 function wheelPreview(style) {
@@ -418,13 +527,33 @@ function wheelPreview(style) {
   return html;
 }
 
-const demo = { on:false, t:0, speed:10, bgOffset:0, wheelAngle:0, raf:null };
+const demo = { on:false, t:0, speed:10, bgOffset:0, wheelAngle:0, raf:null, sirenTimer:null };
 function toggleDemo() {
   demo.on = !demo.on;
   document.getElementById('demoBar').classList.toggle('show', demo.on);
   renderPanel();
-  if (demo.on) loop(); else { cancelAnimationFrame(demo.raf); render(); }
+  if (demo.on) {
+    sfx.engine();
+    const car = CARS[state.bodyType];
+    if (car && car.sirenSfx) startSiren();
+    loop();
+  } else {
+    cancelAnimationFrame(demo.raf);
+    stopSiren();
+    render();
+  }
 }
+function startSiren() {
+  let high = true;
+  const beat = () => {
+    if (!demo.on) return;
+    tone(high ? 880 : 660, 0.3, 'sine', 0.1);
+    high = !high;
+    demo.sirenTimer = setTimeout(beat, 350);
+  };
+  beat();
+}
+function stopSiren() { clearTimeout(demo.sirenTimer); }
 function loop() {
   if (!demo.on) return;
   demo.t++;
@@ -435,63 +564,113 @@ function loop() {
 }
 document.getElementById('demoSpeed').addEventListener('input', e => { demo.speed = Number(e.target.value); });
 
+/* ===== 描画 ===== */
 function render() {
   const svg = document.getElementById('stage');
   if (!state.bodyType) {
-    svg.innerHTML = `${renderBackground()}<text x="400" y="200" text-anchor="middle" font-size="32" fill="rgba(255,255,255,.9)" font-weight="900">⬅ くるまを えらんでね</text>`;
+    svg.innerHTML = `${renderBackground()}<text x="400" y="200" text-anchor="middle" font-size="32" fill="rgba(255,255,255,.95)" font-weight="900" stroke="rgba(0,0,0,.5)" stroke-width="1">⬅ くるまを えらんでね</text>`;
     return;
   }
   const car = CARS[state.bodyType];
   const bounce = demo.on ? Math.sin(demo.t * 0.3) * 2 : 0;
   const grads = `<defs>
     <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${lighten(state.bodyColor, 0.3)}"/>
-      <stop offset="40%" stop-color="${state.bodyColor}"/>
+      <stop offset="0%" stop-color="${lighten(state.bodyColor, 0.4)}"/>
+      <stop offset="25%" stop-color="${lighten(state.bodyColor, 0.15)}"/>
+      <stop offset="50%" stop-color="${state.bodyColor}"/>
       <stop offset="100%" stop-color="${darken(state.bodyColor, 0.3)}"/>
+    </linearGradient>
+    <linearGradient id="bodyShine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.5)"/>
+      <stop offset="40%" stop-color="rgba(255,255,255,0.05)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
     </linearGradient>
     <linearGradient id="subGrad" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="${lighten(state.subColor, 0.2)}"/>
       <stop offset="100%" stop-color="${state.subColor}"/>
     </linearGradient>
-    <radialGradient id="headGlow">
-      <stop offset="0%" stop-color="#ffffcc" stop-opacity="1"/>
-      <stop offset="100%" stop-color="#ffff00" stop-opacity="0"/>
-    </radialGradient>
+    <linearGradient id="glassGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="rgba(180,220,255,0.85)"/>
+      <stop offset="50%" stop-color="rgba(80,140,200,0.75)"/>
+      <stop offset="100%" stop-color="rgba(40,80,140,0.7)"/>
+    </linearGradient>
+    <radialGradient id="headGlow"><stop offset="0%" stop-color="#ffffcc" stop-opacity="1"/><stop offset="100%" stop-color="#ffff00" stop-opacity="0"/></radialGradient>
+    <radialGradient id="sirenRedGlow"><stop offset="0%" stop-color="#ff0000" stop-opacity="0.8"/><stop offset="100%" stop-color="#ff0000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="sirenBlueGlow"><stop offset="0%" stop-color="#0000ff" stop-opacity="0.8"/><stop offset="100%" stop-color="#0000ff" stop-opacity="0"/></radialGradient>
     <clipPath id="bodyClip"><path d="${car.body()}"/></clipPath>
   </defs>`;
   const bg = renderBackground();
-  const shadow = `<ellipse cx="400" cy="335" rx="295" ry="12" fill="rgba(0,0,0,.35)"/>`;
+  const shadow = `<ellipse cx="400" cy="335" rx="295" ry="12" fill="rgba(0,0,0,.4)"/>`;
   let crawlers = '';
   if (car.crawlers) crawlers = renderCrawler(car.wheelF.x, 312) + renderCrawler(car.wheelR.x, 312);
   let arches = '';
   if (!car.crawlers) [car.archF, car.archR, car.archR2, car.archR3].filter(Boolean).forEach(a => { arches += `<circle cx="${a.x}" cy="${a.y}" r="${a.r}" fill="#0a0a0a"/>`; });
   const bodyEl = `<path d="${car.body()}" fill="url(#bodyGrad)" stroke="#1a1a1a" stroke-width="4" stroke-linejoin="round" transform="translate(0,${bounce})"/>`;
+  const bodyShine = `<path d="${car.body()}" fill="url(#bodyShine)" clip-path="url(#bodyClip)" transform="translate(0,${bounce})"/>`;
   let subPaint = '';
-  if (['sedan','sports','mini','classic'].includes(car.bodyStyle) && state.subColor !== state.bodyColor && car.sideStripe === 'middle') {
+  if (['sedan'].includes(car.bodyStyle) && state.subColor !== state.bodyColor && car.sideStripe === 'middle') {
     subPaint = `<rect x="0" y="262" width="800" height="50" fill="url(#subGrad)" clip-path="url(#bodyClip)" transform="translate(0,${bounce})"/>`;
   } else if (['van','truck','bus','wagon','suv'].includes(car.bodyStyle) && state.subColor !== state.bodyColor) {
     subPaint = `<rect x="0" y="100" width="800" height="40" fill="url(#subGrad)" clip-path="url(#bodyClip)" transform="translate(0,${bounce})"/>`;
   }
   let stripe = '';
   if (car.sideStripe === 'cross') stripe = `<rect x="0" y="180" width="800" height="8" fill="${state.subColor}" clip-path="url(#bodyClip)" transform="translate(0,${bounce})"/>`;
-  const glass = car.window ? `<path d="${car.window()}" fill="rgba(100,160,200,.7)" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round" transform="translate(0,${bounce})"/>` : '';
+  // パネルライン
+  let panelLines = '';
+  (car.panelLines || []).forEach(p => {
+    panelLines += `<line x1="${p.x1}" y1="${p.y1+bounce}" x2="${p.x2}" y2="${p.y2+bounce}" stroke="rgba(0,0,0,.5)" stroke-width="1.5"/>`;
+  });
+  // ガラス（リアル）
+  let glass = '';
+  if (car.window) {
+    glass = `<path d="${car.window()}" fill="url(#glassGrad)" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round" transform="translate(0,${bounce})"/>`;
+    // 反射ハイライト
+    glass += `<path d="${car.window()}" fill="rgba(255,255,255,0.3)" clip-path="url(#bodyClip)" transform="translate(0,${bounce-2}) scale(0.95) translate(20,5)"/>`;
+    // クロームフレーム
+    if (car.chrome) {
+      glass += `<path d="${car.window()}" fill="none" stroke="#e0e0e0" stroke-width="1.5" transform="translate(0,${bounce})"/>`;
+    }
+  }
   let pillars = '';
   (car.pillars || []).forEach(px => { pillars += `<line x1="${px}" y1="155" x2="${px}" y2="220" stroke="${state.bodyColor}" stroke-width="6" stroke-linecap="round" transform="translate(0,${bounce})"/>`; });
+  // ライト（リアル化）
   let lights = '';
   const h = car.headlight, t = car.taillight;
-  lights += `<circle cx="${h.x}" cy="${h.y+bounce}" r="10" fill="#fff7c2" stroke="#1a1a1a" stroke-width="2.5"/>`;
-  lights += `<circle cx="${h.x}" cy="${h.y+bounce}" r="5" fill="#ffffff"/>`;
-  lights += `<circle cx="${t.x}" cy="${t.y+bounce}" r="8" fill="#ff2222" stroke="#1a1a1a" stroke-width="2.5"/>`;
-  if (demo.on) lights += `<ellipse cx="${h.x-25}" cy="${h.y+bounce}" rx="38" ry="13" fill="url(#headGlow)" opacity="0.7"/>`;
+  // ヘッドライト多層
+  lights += `<ellipse cx="${h.x}" cy="${h.y+bounce}" rx="14" ry="10" fill="#fff7c2" stroke="#1a1a1a" stroke-width="2.5"/>`;
+  lights += `<ellipse cx="${h.x}" cy="${h.y+bounce}" rx="9" ry="6" fill="#fffae6"/>`;
+  lights += `<ellipse cx="${h.x-2}" cy="${h.y+bounce-2}" rx="3" ry="2" fill="#ffffff"/>`;
+  // テールライト
+  lights += `<ellipse cx="${t.x}" cy="${t.y+bounce}" rx="11" ry="9" fill="#cc1111" stroke="#1a1a1a" stroke-width="2.5"/>`;
+  lights += `<ellipse cx="${t.x}" cy="${t.y+bounce}" rx="7" ry="5" fill="#ff5555"/>`;
+  lights += `<ellipse cx="${t.x-1}" cy="${t.y+bounce-1}" rx="2" ry="1.5" fill="#ffaaaa"/>`;
+  // フォグライト
+  if (car.foglight) {
+    lights += `<circle cx="${car.foglight.x}" cy="${car.foglight.y+bounce}" r="5" fill="#ffe0a0" stroke="#1a1a1a" stroke-width="2"/>`;
+  }
+  if (demo.on) lights += `<ellipse cx="${h.x-30}" cy="${h.y+bounce}" rx="45" ry="15" fill="url(#headGlow)" opacity="0.8"/>`;
+  // グリル（リアル）
   let grille = '';
   if (car.grille) {
     const g = car.grille;
-    grille = `<rect x="${g.x}" y="${g.y+bounce}" width="${g.w}" height="${g.h}" fill="#1a1a1a" rx="2"/>`;
+    grille = `<rect x="${g.x}" y="${g.y+bounce}" width="${g.w}" height="${g.h}" fill="#1a1a1a" stroke="#333" stroke-width="1.5" rx="2"/>`;
+    for (let i = 0; i < Math.floor(g.h/5); i++) {
+      grille += `<line x1="${g.x+2}" y1="${g.y+bounce+4+i*5}" x2="${g.x+g.w-2}" y2="${g.y+bounce+4+i*5}" stroke="#444" stroke-width="1"/>`;
+    }
+    if (car.chrome) grille += `<rect x="${g.x-1}" y="${g.y+bounce-1}" width="${g.w+2}" height="${g.h+2}" fill="none" stroke="#e8e8e8" stroke-width="1.5" rx="3"/>`;
   }
+  // ドアハンドル（クローム）
   let handles = '';
-  (car.doorHandles || []).forEach(dh => { handles += `<rect x="${dh.x-9}" y="${dh.y+bounce-2}" width="18" height="4" rx="2" fill="#1a1a1a"/>`; });
+  (car.doorHandles || []).forEach(dh => {
+    handles += `<rect x="${dh.x-9}" y="${dh.y+bounce-2}" width="18" height="4" rx="2" fill="#1a1a1a"/>`;
+    handles += `<rect x="${dh.x-8}" y="${dh.y+bounce-1.5}" width="16" height="1.5" fill="rgba(255,255,255,.5)"/>`;
+  });
+  // ミラー
   let mirror = '';
-  if (car.mirror) mirror = `<path d="M ${car.mirror.x} ${car.mirror.y+bounce} l 14 -3 l 3 10 l -14 3 z" fill="${state.bodyColor}" stroke="#1a1a1a" stroke-width="2"/>`;
+  if (car.mirror) {
+    mirror = `<path d="M ${car.mirror.x} ${car.mirror.y+bounce} l 14 -3 l 3 10 l -14 3 z" fill="${state.bodyColor}" stroke="#1a1a1a" stroke-width="2"/>`;
+    mirror += `<path d="M ${car.mirror.x+3} ${car.mirror.y+bounce-1} l 10 -2 l 1 6 l -10 2 z" fill="rgba(180,220,255,0.6)"/>`;
+  }
   let roofItem = '';
   if (car.roofItem === 'siren') roofItem = renderSiren(bounce);
   if (car.roofItem === 'fireLadder') roofItem = renderFireLadder(bounce);
@@ -505,39 +684,57 @@ function render() {
   if (car.accessories === 'tankerTank') accessories = renderTankerTank(bounce);
   if (car.accessories === 'busStripe') accessories = renderBusStripe(bounce);
   if (car.spoiler) accessories += `<path d="M 660 240 L 705 215 L 720 215 L 720 235 Z" fill="${state.bodyColor}" stroke="#1a1a1a" stroke-width="2.5" transform="translate(0,${bounce})"/>`;
+  // デカール（エンブレム風）
   let decal = '';
   if (state.decalText) {
     const w = state.decalText.length * 16 + 30;
     decal = `<g transform="translate(400,${245+bounce})">
+      <rect x="${-w/2-2}" y="-22" width="${w+4}" height="40" fill="rgba(0,0,0,.3)" rx="6"/>
       <rect x="${-w/2}" y="-20" width="${w}" height="36" fill="${state.subColor}" stroke="#1a1a1a" stroke-width="3" rx="5"/>
+      <rect x="${-w/2+2}" y="-18" width="${w-4}" height="3" fill="rgba(255,255,255,.5)" rx="2"/>
       <text x="0" y="8" font-size="24" font-weight="900" fill="#1a1a1a" text-anchor="middle" font-family="Impact,sans-serif" letter-spacing="2">${escapeHtml(state.decalText)}</text>
     </g>`;
   }
   let wheels = '';
   if (!car.crawlers) [car.wheelF, car.wheelR, car.wheelR2, car.wheelR3].filter(Boolean).forEach(w => { wheels += renderWheel(w); });
-  svg.innerHTML = `${grads}${bg}${shadow}${crawlers}${arches}${bodyEl}${subPaint}${stripe}${glass}${pillars}${grille}${lights}${handles}${mirror}${roofItem}${accessories}${decal}${wheels}`;
+  // 排気ガス（走行中）
+  let exhaust = '';
+  if (demo.on) {
+    const ex1 = (demo.t*2)%30;
+    exhaust = `<circle cx="${85-ex1}" cy="${300+Math.sin(demo.t*0.2)*5}" r="${8+ex1*0.3}" fill="rgba(180,180,180,${0.4-ex1*0.01})"/>
+               <circle cx="${75-ex1*1.2}" cy="${305+Math.sin(demo.t*0.3)*4}" r="${10+ex1*0.3}" fill="rgba(200,200,200,${0.3-ex1*0.01})"/>`;
+  }
+  svg.innerHTML = `${grads}${bg}${shadow}${exhaust}${crawlers}${arches}${bodyEl}${bodyShine}${subPaint}${stripe}${panelLines}${glass}${pillars}${grille}${lights}${handles}${mirror}${roofItem}${accessories}${decal}${wheels}`;
 }
 
 function renderSiren(bounce) {
   const positions = { police:{x:415,y:158}, ambulance:{x:455,y:130} };
   const p = positions[state.bodyType] || {x:400,y:155};
   const blink = demo.on && Math.floor(demo.t/8)%2===0;
-  return `<g transform="translate(${p.x},${p.y+bounce})">
+  let glow = '';
+  if (demo.on) {
+    if (blink) glow = `<circle cx="${p.x-16}" cy="${p.y+bounce-9}" r="35" fill="url(#sirenRedGlow)"/>`;
+    else glow = `<circle cx="${p.x+16}" cy="${p.y+bounce-9}" r="35" fill="url(#sirenBlueGlow)"/>`;
+  }
+  return `${glow}<g transform="translate(${p.x},${p.y+bounce})">
     <rect x="-32" y="-16" width="64" height="14" rx="3" fill="#1a1a1a"/>
     <rect x="-30" y="-14" width="28" height="10" fill="${blink?'#ff3333':'#660000'}"/>
     <rect x="2" y="-14" width="28" height="10" fill="${blink?'#3333ff':'#000066'}"/>
+    <rect x="-32" y="-16" width="64" height="2" fill="rgba(255,255,255,.4)"/>
   </g>`;
 }
 function renderFireLadder(bounce) {
   return `<g transform="translate(540,140) translate(0,${bounce})">
-    <rect x="-160" y="-10" width="320" height="6" fill="#c0c0c0" stroke="#1a1a1a" stroke-width="1.5"/>
-    <rect x="-160" y="0" width="320" height="6" fill="#c0c0c0" stroke="#1a1a1a" stroke-width="1.5"/>
+    <rect x="-160" y="-10" width="320" height="6" fill="#d0d0d0" stroke="#1a1a1a" stroke-width="1.5"/>
+    <rect x="-160" y="0" width="320" height="6" fill="#d0d0d0" stroke="#1a1a1a" stroke-width="1.5"/>
     ${Array.from({length:16}).map((_,i)=>`<rect x="${-155+i*20}" y="-10" width="3" height="16" fill="#888"/>`).join('')}
+    <circle cx="-100" cy="-5" r="6" fill="#ffd60a" stroke="#1a1a1a" stroke-width="1.5"/>
   </g>`;
 }
 function renderTaxiSign(bounce) {
   return `<g transform="translate(415,158) translate(0,${bounce})">
-    <rect x="-26" y="-16" width="52" height="14" rx="3" fill="${state.subColor}" stroke="#1a1a1a" stroke-width="2"/>
+    <rect x="-28" y="-18" width="56" height="16" rx="3" fill="${state.subColor}" stroke="#1a1a1a" stroke-width="2"/>
+    <rect x="-26" y="-16" width="52" height="3" fill="rgba(255,255,255,.5)" rx="1"/>
     <text x="0" y="-5" font-size="11" font-weight="900" fill="${state.bodyColor}" text-anchor="middle">TAXI</text>
   </g>`;
 }
@@ -591,7 +788,6 @@ function renderTankerTank(bounce) {
 function renderBusStripe(bounce) {
   return `<rect x="95" y="210" width="610" height="10" fill="${state.subColor}" clip-path="url(#bodyClip)" transform="translate(0,${bounce})"/>`;
 }
-
 function renderCrawler(cx, cy) {
   const w = 130;
   let treads = '';
@@ -606,7 +802,6 @@ function renderCrawler(cx, cy) {
     <circle cx="${cx+w/2}" cy="${cy}" r="14" fill="#444" stroke="#1a1a1a" stroke-width="2"/>
   </g>`;
 }
-
 function renderWheel(w) { return `<g transform="translate(${w.x},${w.y})">${renderWheelInner(0,0,w.r,demo.on?demo.wheelAngle:0)}</g>`; }
 function renderWheelInner(cx, cy, r, ang) {
   const s = state;
@@ -652,68 +847,122 @@ function spokes(n, r, color, w) {
   }).join('');
 }
 
+/* ===== 背景システム（6種類） ===== */
 function renderBackground() {
-  if (!demo.on) {
-    return `<rect x="0" y="280" width="800" height="120" fill="#555"/><rect x="0" y="278" width="800" height="2" fill="#fff"/>`;
+  const bg = state.bgType;
+  if (bg === 'road') return renderBgRoad();
+  if (bg === 'city') return renderBgCity();
+  if (bg === 'race') return renderBgRace();
+  if (bg === 'night') return renderBgNight();
+  if (bg === 'site') return renderBgSite();
+  if (bg === 'beach') return renderBgBeach();
+  return renderBgRoad();
+}
+function skyGradient(top, bottom) {
+  return `<linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${top}"/><stop offset="100%" stop-color="${bottom}"/></linearGradient>`;
+}
+function renderBgRoad() {
+  const off = demo.on ? demo.bgOffset : 0;
+  const cloudX = demo.on ? (demo.t*0.5)%900 : 0;
+  let dashes = '';
+  for (let x = -80; x < 880; x += 80) dashes += `<rect x="${x+off}" y="345" width="40" height="6" fill="#fff"/>`;
+  return `<defs>${skyGradient('#87ceeb','#b8e0f0')}</defs>
+    <rect width="800" height="280" fill="url(#skyGrad)"/>
+    <ellipse cx="${100-cloudX}" cy="60" rx="40" ry="15" fill="rgba(255,255,255,.9)"/>
+    <ellipse cx="${400-cloudX}" cy="40" rx="50" ry="18" fill="rgba(255,255,255,.8)"/>
+    <ellipse cx="${100-cloudX+800}" cy="60" rx="40" ry="15" fill="rgba(255,255,255,.9)"/>
+    <ellipse cx="${400-cloudX+800}" cy="40" rx="50" ry="18" fill="rgba(255,255,255,.8)"/>
+    <rect x="0" y="240" width="800" height="40" fill="#6fa050"/>
+    <rect x="0" y="280" width="800" height="120" fill="#555"/>
+    ${dashes}`;
+}
+function renderBgCity() {
+  const off = demo.on ? demo.bgOffset*0.7 : 0;
+  let buildings = '';
+  const bs = [{x:0,w:80,h:120,c:'#4a5f7a'},{x:85,w:60,h:160,c:'#3d5066'},{x:150,w:100,h:100,c:'#5a708a'},
+              {x:255,w:70,h:180,c:'#3a4d62'},{x:330,w:90,h:130,c:'#5e7596'},{x:425,w:60,h:150,c:'#445a72'},
+              {x:490,w:110,h:170,c:'#3d5066'},{x:605,w:75,h:110,c:'#536982'},{x:685,w:90,h:160,c:'#3a4d62'}];
+  bs.forEach(b => {
+    const x = ((b.x-off) % 900 + 900) % 900 - 100;
+    buildings += `<rect x="${x}" y="${280-b.h}" width="${b.w}" height="${b.h}" fill="${b.c}" stroke="#1a2a3a" stroke-width="1.5"/>`;
+    for (let wy=0; wy<b.h-20; wy+=20) {
+      for (let wx=0; wx<b.w-15; wx+=15) {
+        const lit = Math.random()>0.4 ? '#ffd966' : '#33445a';
+        buildings += `<rect x="${x+wx+5}" y="${290-b.h+wy+5}" width="6" height="8" fill="${lit}"/>`;
+      }
+    }
+  });
+  let dashes = '';
+  for (let x = -80; x < 880; x += 80) dashes += `<rect x="${x+(demo.on?demo.bgOffset:0)}" y="345" width="40" height="6" fill="#fff"/>`;
+  return `<defs>${skyGradient('#ffb380','#ffd9b3')}</defs>
+    <rect width="800" height="280" fill="url(#skyGrad)"/>
+    ${buildings}
+    <rect x="0" y="280" width="800" height="120" fill="#555"/>
+    ${dashes}`;
+}
+function renderBgRace() {
+  const off = demo.on ? demo.bgOffset*1.5 : 0;
+  let flags = '';
+  for (let x = 0; x < 800; x += 60) {
+    const fx = ((x-off) % 900 + 900) % 900 - 50;
+    flags += `<polygon points="${fx},80 ${fx+30},80 ${fx+25},100 ${fx+30},120 ${fx},120" fill="${(Math.floor(x/60))%2===0?'#fff':'#1a1a1a'}" stroke="#1a1a1a" stroke-width="1"/>`;
   }
-  const dashes = [];
-  for (let x = -80; x < 880; x += 80) {
-    dashes.push(`<rect x="${x + demo.bgOffset}" y="345" width="40" height="6" fill="#fff"/>`);
+  let checker = '';
+  for (let x = 0; x < 800; x += 40) {
+    for (let y = 280; y < 290; y += 10) {
+      const ox = ((x+off*2) % 80) < 40 ? '#fff' : '#1a1a1a';
+      checker += `<rect x="${x+(demo.on?demo.bgOffset*2%40:0)}" y="${y}" width="40" height="10" fill="${ox}"/>`;
+    }
   }
-  return `<rect x="0" y="280" width="800" height="120" fill="#555"/>${dashes.join('')}`;
+  return `<defs>${skyGradient('#5dd8e8','#a0eaf0')}</defs>
+    <rect width="800" height="280" fill="url(#skyGrad)"/>
+    <rect x="0" y="180" width="800" height="100" fill="#88a058"/>
+    <rect x="0" y="170" width="800" height="3" fill="#fff"/>
+    ${flags}
+    <rect x="0" y="280" width="800" height="120" fill="#3a3a3a"/>
+    ${checker}
+    <rect x="0" y="350" width="800" height="3" fill="#fff"/>`;
 }
-
-function lighten(hex, amt) { return shade(hex, amt); }
-function darken(hex, amt) { return shade(hex, -amt); }
-function shade(hex, amt) {
-  const c = hex.replace('#','');
-  const num = parseInt(c, 16);
-  let r = (num>>16) + Math.round(255*amt);
-  let g = ((num>>8)&0xff) + Math.round(255*amt);
-  let b = (num&0xff) + Math.round(255*amt);
-  r = Math.max(0,Math.min(255,r));
-  g = Math.max(0,Math.min(255,g));
-  b = Math.max(0,Math.min(255,b));
-  return '#' + ((r<<16)|(g<<8)|b).toString(16).padStart(6,'0');
+function renderBgNight() {
+  let stars = '';
+  for (let i = 0; i < 40; i++) {
+    const sx = (i*73 + (demo.on?demo.t*0.1:0)) % 800;
+    const sy = (i*37) % 200;
+    const tw = demo.on && (Math.floor(demo.t/10+i)%3 === 0);
+    stars += `<circle cx="${sx}" cy="${sy}" r="${tw?2:1}" fill="${tw?'#fff':'#ffffe0'}"/>`;
+  }
+  const moon = `<circle cx="650" cy="80" r="35" fill="#fffde6"/><circle cx="655" cy="75" r="35" fill="#1a2a4a"/>`;
+  let lights = '';
+  for (let x = 50; x < 800; x += 100) {
+    lights += `<rect x="${x}" y="${260}" width="6" height="40" fill="#444"/>
+               <circle cx="${x+3}" cy="${255}" r="10" fill="#ffe680" opacity="0.9"/>
+               <ellipse cx="${x+3}" cy="${280}" rx="20" ry="40" fill="rgba(255,230,128,0.15)"/>`;
+  }
+  let dashes = '';
+  for (let x = -80; x < 880; x += 80) dashes += `<rect x="${x+(demo.on?demo.bgOffset:0)}" y="345" width="40" height="6" fill="#ffe680"/>`;
+  return `<defs>${skyGradient('#0a1530','#2a3a5a')}</defs>
+    <rect width="800" height="280" fill="url(#skyGrad)"/>
+    ${stars}${moon}${lights}
+    <rect x="0" y="280" width="800" height="120" fill="#2a2a2a"/>
+    ${dashes}`;
 }
-function escapeHtml(t){return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);}
-
-function exportPNG() {
-  const svg = document.getElementById('stage');
-  const data = new XMLSerializer().serializeToString(svg);
-  const img = new Image();
-  img.onload = () => {
-    const canvas = document.createElement('canvas');
-    canvas.width = 1600; canvas.height = 800;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0, 1600, 800);
-    canvas.toBlob(b => download(b, 'mytomica.png'));
-  };
-  img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(data)));
-}
-function saveJSON() {
-  const blob = new Blob([JSON.stringify({state, step:currentStep}, null, 2)], {type:'application/json'});
-  download(blob, 'mytomica.json');
-}
-function loadJSON(e) {
-  const reader = new FileReader();
-  reader.onload = ev => {
-    const d = JSON.parse(ev.target.result);
-    Object.assign(state, d.state);
-    currentStep = d.step || 0;
-    renderStepDots(); renderPanel(); render();
-  };
-  reader.readAsText(e.target.files[0]);
-}
-function download(blob, name) {
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = name; a.click();
-}
-
-renderStepDots();
-renderPanel();
-render();
-</script>
-</body>
-</html>
+function renderBgSite() {
+  const off = demo.on ? demo.bgOffset*0.5 : 0;
+  let cones = '';
+  for (let x = 100; x < 800; x += 150) {
+    const cx = ((x-off) % 900 + 900) % 900 - 50;
+    cones += `<polygon points="${cx},260 ${cx-10},280 ${cx+10},280" fill="#ff6b35" stroke="#1a1a1a" stroke-width="1.5"/>
+              <rect x="${cx-7}" y="${268}" width="14" height="3" fill="#fff"/>`;
+  }
+  // 工事クレーン遠景
+  const crane = `<line x1="100" y1="280" x2="100" y2="80" stroke="#ffb703" stroke-width="6"/>
+                 <line x1="100" y1="80" x2="250" y2="80" stroke="#ffb703" stroke-width="5"/>
+                 <line x1="100" y1="100" x2="200" y2="80" stroke="#ffb703" stroke-width="2"/>
+                 <line x1="200" y1="80" x2="200" y2="160" stroke="#888" stroke-width="1.5"/>
+                 <rect x="190" y="160" width="20" height="15" fill="#666" stroke="#1a1a1a"/>`;
+  let stripes = '';
+  for (let x = -40; x < 880; x += 80) stripes += `<rect x="${x+(demo.on?demo.bgOffset:0)}" y="280" width="40" height="10" fill="#ffd60a"/>`;
+  return `<defs>${skyGradient('#a8c5d8','#d0e0e8')}</defs>
+    <rect width="800" height="280" fill="url(#skyGrad)"/>
+    ${crane}
+    <rect x="0" y="240" width="
