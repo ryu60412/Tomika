@@ -9,19 +9,19 @@
 html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: "Hiragino Maru Gothic ProN", "Yu Gothic", sans-serif; background: #ffd966; font-weight: 700; }
 .app { width: 100vw; height: 100vh; display: grid; grid-template-rows: 70px 1fr 90px; }
 header { background: #ee5253; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
-header h1 { margin: 0; font-size: 24px; letter-spacing: 2px; }
-.header-btns { display: flex; gap: 6px; }
-.header-btns button { background: #fff; color: #ee5253; border: 0; padding: 10px 14px; border-radius: 30px; font-size: 14px; font-weight: 900; cursor: pointer; box-shadow: 0 3px 0 #c33; }
+header h1 { margin: 0; font-size: 22px; letter-spacing: 1px; }
+.header-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+.header-btns button { background: #fff; color: #ee5253; border: 0; padding: 8px 12px; border-radius: 30px; font-size: 13px; font-weight: 900; cursor: pointer; box-shadow: 0 3px 0 #c33; }
 .header-btns button:active { transform: translateY(2px); box-shadow: 0 1px 0 #c33; }
-.header-btns button.on { background: #06d6a0; color: #fff; }
+.header-btns button.on { background: #06d6a0; color: #fff; box-shadow: 0 3px 0 #04a880; }
 main { display: grid; grid-template-columns: 1fr 380px; gap: 14px; padding: 14px; overflow: hidden; }
-.preview { border-radius: 20px; position: relative; overflow: hidden; border: 6px solid #fff; }
+.preview { border-radius: 20px; position: relative; overflow: hidden; border: 6px solid #fff; background: #87ceeb; }
 .preview svg { width: 100%; height: 100%; display: block; }
-.demo-bar { position: absolute; bottom: 12px; left: 12px; right: 12px; background: rgba(0,0,0,.7); padding: 10px 16px; border-radius: 30px; display: none; align-items: center; gap: 12px; color: #fff; font-size: 18px; }
+.demo-bar { position: absolute; bottom: 12px; left: 12px; right: 12px; background: rgba(0,0,0,.7); padding: 8px 14px; border-radius: 30px; display: none; align-items: center; gap: 12px; color: #fff; font-size: 16px; }
 .demo-bar.show { display: flex; }
 .demo-bar input[type=range] { flex: 1; height: 30px; }
-.bg-bar { position: absolute; top: 10px; left: 10px; display: flex; gap: 4px; flex-wrap: wrap; max-width: 70%; }
-.bg-btn { background: rgba(0,0,0,.6); color: #fff; border: 2px solid #fff; padding: 6px 10px; border-radius: 20px; font-size: 13px; cursor: pointer; font-weight: 900; }
+.bg-bar { position: absolute; top: 10px; left: 10px; display: flex; gap: 4px; flex-wrap: wrap; max-width: 75%; }
+.bg-btn { background: rgba(0,0,0,.6); color: #fff; border: 2px solid #fff; padding: 5px 10px; border-radius: 20px; font-size: 12px; cursor: pointer; font-weight: 900; }
 .bg-btn.active { background: #ee5253; }
 .panel { background: #fff; border-radius: 20px; padding: 16px; overflow-y: auto; border: 4px solid #ffe066; }
 .panel h2 { margin: 0 0 12px; font-size: 22px; color: #ee5253; text-align: center; }
@@ -53,8 +53,8 @@ footer { background: #fff; padding: 10px 20px; display: flex; align-items: cente
 .btn-nav:active { transform: translateY(3px); box-shadow: none; }
 .btn-nav:disabled { opacity: 0.4; cursor: not-allowed; }
 .finish-msg { text-align: center; padding: 20px; }
-.finish-msg .big { font-size: 60px; margin: 10px 0; }
-.finish-msg .ttl { font-size: 28px; color: #ee5253; margin-bottom: 10px; }
+.finish-msg .big { font-size: 60px; }
+.finish-msg .ttl { font-size: 28px; color: #ee5253; }
 .finish-actions button { width: 100%; margin: 6px 0; padding: 14px; border: 0; border-radius: 14px; font-size: 18px; font-weight: 900; cursor: pointer; color: #fff; }
 .btn-save { background: #4ecdc4; }
 .btn-again { background: #ff6b6b; }
@@ -63,7 +63,6 @@ footer { background: #fff; padding: 10px 20px; display: flex; align-items: cente
 </style>
 </head>
 <body>
-
 <div class="app">
 <header>
 <h1>🚗 マイトミカ つくろう！v6</h1>
@@ -75,124 +74,78 @@ footer { background: #fff; padding: 10px 20px; display: flex; align-items: cente
 <input type="file" id="loadFile" accept=".json" style="display:none" onchange="loadJSON(event)">
 </div>
 </header>
-
 <main>
-<div class="preview" id="preview">
+<div class="preview">
 <svg id="stage" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg"></svg>
 <div class="bg-bar" id="bgBar"></div>
 <div class="demo-bar" id="demoBar">
-<button onclick="hornBeep()" style="background:#f39c12;border:0;border-radius:50%;width:46px;height:46px;font-size:24px;cursor:pointer">📯</button>
+<button onclick="hornBeep()" style="background:#f39c12;border:0;border-radius:50%;width:42px;height:42px;font-size:22px;cursor:pointer">📯</button>
 <span>🏁</span>
 <input type="range" id="demoSpeed" min="1" max="20" value="10">
-<span style="font-size:24px">⚡</span>
+<span style="font-size:22px">⚡</span>
 </div>
 </div>
 <aside class="panel" id="panel"></aside>
 </main>
-
 <footer>
 <button class="btn-nav btn-back" id="btnBack" onclick="prevStep()">← もどる</button>
 <div class="step-dots" id="stepDots"></div>
 <button class="btn-nav btn-next" id="btnNext" onclick="nextStep()">つぎへ →</button>
 </footer>
 </div>
-
 <script>
-/* ===== 音声システム ===== */
 const audio = { ctx:null, sfxOn:true, bgmOn:false, bgmTimer:null, bgmNotes:[], bgmIdx:0 };
-function initAudio() {
-  if (audio.ctx) return;
-  try { audio.ctx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){}
-}
-function tone(freq, dur=0.1, type='sine', vol=0.15, when=0) {
-  if (!audio.sfxOn && !arguments[5]) return;
-  initAudio();
-  if (!audio.ctx) return;
-  const t = audio.ctx.currentTime + when;
-  const o = audio.ctx.createOscillator();
-  const g = audio.ctx.createGain();
-  o.type = type; o.frequency.setValueAtTime(freq, t);
-  g.gain.setValueAtTime(0, t);
-  g.gain.linearRampToValueAtTime(vol, t + 0.01);
-  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+function initAudio() { if (audio.ctx) return; try { audio.ctx = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){} }
+function tone(freq, dur, type, vol, when, force) {
+  if (!audio.sfxOn && !force) return;
+  initAudio(); if (!audio.ctx) return;
+  const t = audio.ctx.currentTime + (when||0);
+  const o = audio.ctx.createOscillator(); const g = audio.ctx.createGain();
+  o.type = type||'sine'; o.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol||0.15, t + 0.01);
+  g.gain.exponentialRampToValueAtTime(0.001, t + (dur||0.1));
   o.connect(g); g.connect(audio.ctx.destination);
-  o.start(t); o.stop(t + dur);
+  o.start(t); o.stop(t + (dur||0.1));
 }
 const sfx = {
   tap: () => tone(880, 0.06, 'square', 0.08),
-  ok: () => { tone(660,0.08,'sine',0.15); tone(880,0.1,'sine',0.15,0.08); },
+  ok: () => { tone(660,0.08); tone(880,0.1,'sine',0.15,0.08); },
   car: () => { tone(220,0.15,'sawtooth',0.1); tone(280,0.2,'sawtooth',0.1,0.1); },
   finish: () => { tone(523,0.1); tone(659,0.1,'sine',0.15,0.1); tone(784,0.2,'sine',0.15,0.2); tone(1047,0.3,'sine',0.15,0.4); },
   horn: () => { tone(440,0.2,'square',0.2); tone(330,0.3,'square',0.2,0.15); },
   engine: () => { tone(80,0.5,'sawtooth',0.05); tone(120,0.3,'sawtooth',0.05,0.1); }
 };
 function hornBeep() { initAudio(); if(audio.ctx) audio.ctx.resume(); sfx.horn(); }
-function toggleSFX() {
-  audio.sfxOn = !audio.sfxOn;
-  document.getElementById('sfxBtn').classList.toggle('on', audio.sfxOn);
-  if (audio.sfxOn) sfx.tap();
-}
+function toggleSFX() { audio.sfxOn = !audio.sfxOn; document.getElementById('sfxBtn').classList.toggle('on', audio.sfxOn); if (audio.sfxOn) sfx.tap(); }
 
-/* ===== BGM ===== */
-const BGM_TRACKS = {
+const BGM = {
   pop: [['C4',300],['E4',300],['G4',300],['E4',300],['F4',300],['A4',300],['G4',300],['E4',300],['D4',300],['F4',300],['E4',300],['C4',600]],
   excite: [['C5',200],['G4',200],['C5',200],['E5',200],['G5',400],['F5',200],['E5',200],['D5',200],['C5',400]],
   race: [['E4',150],['G4',150],['B4',150],['E5',300],['D5',150],['B4',150],['G4',300],['A4',150],['B4',150],['C5',300],['G4',300]]
 };
-const NOTES = { 'C4':261.63,'D4':293.66,'E4':329.63,'F4':349.23,'G4':392,'A4':440,'B4':493.88,'C5':523.25,'D5':587.33,'E5':659.25,'F5':698.46,'G5':783.99 };
+const NOTES = {'C4':261.63,'D4':293.66,'E4':329.63,'F4':349.23,'G4':392,'A4':440,'B4':493.88,'C5':523.25,'D5':587.33,'E5':659.25,'F5':698.46,'G5':783.99};
 function toggleBGM() {
   audio.bgmOn = !audio.bgmOn;
   document.getElementById('bgmBtn').classList.toggle('on', audio.bgmOn);
-  if (audio.bgmOn) startBGM(); else stopBGM();
+  if (audio.bgmOn) startBGM(); else { clearTimeout(audio.bgmTimer); }
 }
 function startBGM() {
   initAudio(); if(audio.ctx) audio.ctx.resume();
-  const trackName = state.bgType === 'race' ? 'race' : (state.bgType === 'city' ? 'excite' : 'pop');
-  audio.bgmNotes = BGM_TRACKS[trackName];
-  audio.bgmIdx = 0;
-  playBGMNote();
-}
-function stopBGM() {
-  clearTimeout(audio.bgmTimer);
-  audio.bgmTimer = null;
+  const name = state.bgType === 'race' ? 'race' : (state.bgType === 'city' || state.bgType === 'night' ? 'excite' : 'pop');
+  audio.bgmNotes = BGM[name]; audio.bgmIdx = 0; playBGMNote();
 }
 function playBGMNote() {
   if (!audio.bgmOn) return;
-  const [note, dur] = audio.bgmNotes[audio.bgmIdx];
-  const freq = NOTES[note] || 440;
-  tone(freq, dur/1000, 'triangle', 0.04, 0, true);
+  const [n, d] = audio.bgmNotes[audio.bgmIdx];
+  tone(NOTES[n]||440, d/1000, 'triangle', 0.04, 0, true);
   audio.bgmIdx = (audio.bgmIdx + 1) % audio.bgmNotes.length;
-  audio.bgmTimer = setTimeout(playBGMNote, dur);
+  audio.bgmTimer = setTimeout(playBGMNote, d);
 }
 
-/* ===== ステップ ===== */
-const STEPS = [
-  {id:'category',label:'しゅるい'},
-  {id:'body',label:'くるま'},
-  {id:'color',label:'いろ'},
-  {id:'wheel',label:'タイヤ'},
-  {id:'decal',label:'もじ'},
-  {id:'finish',label:'かんせい'}
-];
+const STEPS = [{id:'category',label:'しゅるい'},{id:'body',label:'くるま'},{id:'color',label:'いろ'},{id:'wheel',label:'タイヤ'},{id:'decal',label:'もじ'},{id:'finish',label:'かんせい'}];
 let currentStep = 0;
-
-const state = {
-  category:'normal', bodyType:null,
-  bodyColor:'#e63946', subColor:'#ffffff',
-  wheelStyle:'spoke5', hubColor:'#cccccc',
-  decalText:'', bgType:'road'
-};
-
-/* ===== 背景 ===== */
-const BACKGROUNDS = {
-  road:    {label:'🛣️ どうろ'},
-  city:    {label:'🏙️ まち'},
-  race:    {label:'🏁 サーキット'},
-  night:   {label:'🌃 よる'},
-  site:    {label:'🏗️ こうじ'},
-  beach:   {label:'🌊 うみ'}
-};
-
+const state = { category:'normal', bodyType:null, bodyColor:'#e63946', subColor:'#ffffff', wheelStyle:'spoke5', hubColor:'#cccccc', decalText:'', bgType:'road' };
+const BACKGROUNDS = { road:'🛣️ どうろ', city:'🏙️ まち', race:'🏁 サーキット', night:'🌃 よる', site:'🏗️ こうじ', beach:'🌊 うみ' };
 const CATEGORIES = {
   normal:{label:'🚗 ふつう', cars:['sports','sedan','suv','mini','convertible','wagon','classic','race','taxi','van']},
   work:{label:'🚧 はたらく', cars:['police','firetruck','ambulance','excavator','bulldozer','crane','dumptruck','mixer','cargotruck','tanker','garbage','bus','schoolbus','tractor','mailtruck']}
@@ -202,305 +155,174 @@ const CARS = {
   sports:{icon:'🏎️',label:'スポーツカー',defaultColor:'#e63946',defaultSub:'#ffffff',
     body:()=>`M 105 310 L 105 290 Q 105 280 117 278 L 165 268 L 230 252 L 290 230 L 340 195 L 380 168 L 480 168 L 545 200 L 600 222 L 655 242 L 690 256 Q 700 260 700 270 L 700 310 Z`,
     window:()=>`M 378 182 L 482 182 L 538 220 L 348 220 Z`,
-    pillars:[430], wheelF:{x:230,y:300,r:34}, wheelR:{x:610,y:300,r:34},
-    archF:{x:230,y:302,r:56}, archR:{x:610,y:302,r:56},
-    headlight:{x:135,y:280}, taillight:{x:670,y:268},
-    grille:{x:110,y:287,w:14,h:14}, doorHandles:[{x:400,y:255}], mirror:{x:370,y:208}, bodyStyle:'sedan',
-    panelLines:[{x1:400,y1:230,x2:400,y2:280}], hood:true, foglight:{x:160,y:295}},
+    pillars:[430], wheelF:{x:230,y:300,r:34}, wheelR:{x:610,y:300,r:34}, archF:{x:230,y:302,r:56}, archR:{x:610,y:302,r:56},
+    headlight:{x:135,y:280}, taillight:{x:670,y:268}, grille:{x:110,y:287,w:14,h:14}, doorHandles:[{x:400,y:255}], mirror:{x:370,y:208}, bodyStyle:'sedan', chrome:true},
   sedan:{icon:'🚗',label:'セダン',defaultColor:'#1d3557',defaultSub:'#ffffff',
     body:()=>`M 130 310 L 130 270 Q 130 258 142 254 L 175 244 L 220 232 L 270 220 L 310 195 L 345 158 L 490 158 L 525 195 L 560 218 L 615 230 L 660 244 Q 678 250 678 262 L 678 310 Z`,
     window:()=>`M 342 175 L 488 175 L 522 220 L 312 220 Z`,
-    pillars:[410], wheelF:{x:215,y:300,r:36}, wheelR:{x:600,y:300,r:36},
-    archF:{x:215,y:302,r:60}, archR:{x:600,y:302,r:60},
-    headlight:{x:148,y:258}, taillight:{x:665,y:255},
-    grille:{x:135,y:268,w:14,h:24}, doorHandles:[{x:345,y:228},{x:475,y:228}], mirror:{x:330,y:200}, bodyStyle:'sedan',
-    panelLines:[{x1:405,y1:220,x2:405,y2:280},{x1:280,y1:230,x2:280,y2:280},{x1:540,y1:230,x2:540,y2:280}], chrome:true},
+    pillars:[410], wheelF:{x:215,y:300,r:36}, wheelR:{x:600,y:300,r:36}, archF:{x:215,y:302,r:60}, archR:{x:600,y:302,r:60},
+    headlight:{x:148,y:258}, taillight:{x:665,y:255}, grille:{x:135,y:268,w:14,h:24}, doorHandles:[{x:345,y:228},{x:475,y:228}], mirror:{x:330,y:200}, bodyStyle:'sedan', chrome:true},
   suv:{icon:'🚙',label:'SUV',defaultColor:'#2a9d8f',defaultSub:'#1a1a1a',
     body:()=>`M 120 310 L 120 268 Q 120 256 130 252 L 160 240 L 200 230 L 245 222 L 280 180 L 305 138 L 510 138 L 540 175 L 555 222 L 605 232 L 655 244 L 678 254 Q 688 258 688 268 L 688 310 Z`,
     window:()=>`M 302 155 L 512 155 L 545 220 L 285 220 Z`,
-    pillars:[405], wheelF:{x:215,y:300,r:40}, wheelR:{x:605,y:300,r:40},
-    archF:{x:215,y:302,r:62}, archR:{x:605,y:302,r:62},
-    headlight:{x:148,y:258}, taillight:{x:670,y:250},
-    grille:{x:125,y:265,w:18,h:30}, doorHandles:[{x:340,y:215},{x:470,y:215}], mirror:{x:300,y:180}, bodyStyle:'suv',
-    panelLines:[{x1:405,y1:220,x2:405,y2:280}], chrome:true},
+    pillars:[405], wheelF:{x:215,y:300,r:40}, wheelR:{x:605,y:300,r:40}, archF:{x:215,y:302,r:62}, archR:{x:605,y:302,r:62},
+    headlight:{x:148,y:258}, taillight:{x:670,y:250}, grille:{x:125,y:265,w:18,h:30}, doorHandles:[{x:340,y:215},{x:470,y:215}], mirror:{x:300,y:180}, bodyStyle:'suv', chrome:true},
   mini:{icon:'🚗',label:'ミニカー',defaultColor:'#f4a261',defaultSub:'#ffffff',
     body:()=>`M 170 310 L 170 268 Q 170 256 182 252 L 210 244 L 240 232 L 270 170 L 295 150 L 510 150 L 535 170 L 565 232 L 600 244 L 625 252 Q 638 256 638 268 L 638 310 Z`,
     window:()=>`M 268 165 L 535 165 L 562 222 L 270 222 Z`,
-    pillars:[400], wheelF:{x:230,y:300,r:30}, wheelR:{x:575,y:300,r:30},
-    archF:{x:230,y:302,r:50}, archR:{x:575,y:302,r:50},
-    headlight:{x:185,y:260}, taillight:{x:625,y:258},
-    grille:{x:175,y:268,w:14,h:22}, doorHandles:[{x:400,y:235}], mirror:{x:290,y:175}, bodyStyle:'mini'},
+    pillars:[400], wheelF:{x:230,y:300,r:30}, wheelR:{x:575,y:300,r:30}, archF:{x:230,y:302,r:50}, archR:{x:575,y:302,r:50},
+    headlight:{x:185,y:260}, taillight:{x:625,y:258}, grille:{x:175,y:268,w:14,h:22}, doorHandles:[{x:400,y:235}], mirror:{x:290,y:175}, bodyStyle:'mini'},
   convertible:{icon:'🚗',label:'オープンカー',defaultColor:'#ee5253',defaultSub:'#1a1a1a',
     body:()=>`M 110 310 L 110 290 Q 110 278 122 276 L 170 268 L 230 256 L 290 240 L 340 225 L 390 220 L 490 220 L 550 235 L 605 250 L 655 262 L 685 270 Q 695 274 695 282 L 695 310 Z`,
     window:()=>`M 345 220 L 405 195 L 480 195 L 490 220 Z`,
-    pillars:[], wheelF:{x:230,y:300,r:34}, wheelR:{x:610,y:300,r:34},
-    archF:{x:230,y:302,r:56}, archR:{x:610,y:302,r:56},
-    headlight:{x:140,y:282}, taillight:{x:670,y:272},
-    grille:{x:115,y:289,w:14,h:14}, doorHandles:[{x:400,y:260}], mirror:{x:340,y:235}, bodyStyle:'sports',
-    chrome:true},
+    pillars:[], wheelF:{x:230,y:300,r:34}, wheelR:{x:610,y:300,r:34}, archF:{x:230,y:302,r:56}, archR:{x:610,y:302,r:56},
+    headlight:{x:140,y:282}, taillight:{x:670,y:272}, grille:{x:115,y:289,w:14,h:14}, doorHandles:[{x:400,y:260}], mirror:{x:340,y:235}, bodyStyle:'sports', chrome:true},
   wagon:{icon:'🚙',label:'ワゴン',defaultColor:'#6c5ce7',defaultSub:'#ffffff',
     body:()=>`M 115 310 L 115 268 Q 115 256 128 252 L 158 244 L 195 232 L 230 220 L 265 150 L 290 130 L 660 130 L 685 145 L 698 168 L 698 310 Z`,
     window:()=>`M 288 145 L 658 145 L 658 220 L 260 220 Z`,
-    pillars:[395,525], wheelF:{x:210,y:300,r:36}, wheelR:{x:610,y:300,r:36},
-    archF:{x:210,y:302,r:58}, archR:{x:610,y:302,r:58},
-    headlight:{x:143,y:258}, taillight:{x:688,y:185},
-    grille:{x:122,y:265,w:16,h:24}, doorHandles:[{x:340,y:230},{x:480,y:230}], mirror:{x:280,y:160}, bodyStyle:'wagon',
-    panelLines:[{x1:395,y1:215,x2:395,y2:280},{x1:525,y1:215,x2:525,y2:280}]},
-  classic:{icon:'🚙',label:'クラシックカー',defaultColor:'#8b4513',defaultSub:'#ffd966',
+    pillars:[395,525], wheelF:{x:210,y:300,r:36}, wheelR:{x:610,y:300,r:36}, archF:{x:210,y:302,r:58}, archR:{x:610,y:302,r:58},
+    headlight:{x:143,y:258}, taillight:{x:688,y:185}, grille:{x:122,y:265,w:16,h:24}, doorHandles:[{x:340,y:230},{x:480,y:230}], mirror:{x:280,y:160}, bodyStyle:'wagon'},
+  classic:{icon:'🚙',label:'クラシック',defaultColor:'#8b4513',defaultSub:'#ffd966',
     body:()=>`M 125 310 L 125 290 Q 125 278 138 276 L 170 268 L 200 252 L 235 240 L 270 180 L 295 145 L 320 130 L 480 130 L 510 145 L 540 180 L 580 240 L 615 252 L 650 268 Q 665 276 665 290 L 665 310 Z`,
     window:()=>`M 295 158 L 510 158 L 540 225 L 270 225 Z`,
-    pillars:[400], wheelF:{x:220,y:300,r:36}, wheelR:{x:580,y:300,r:36},
-    archF:{x:220,y:302,r:62}, archR:{x:580,y:302,r:62},
-    headlight:{x:165,y:255}, taillight:{x:625,y:250},
-    grille:{x:130,y:262,w:16,h:32}, doorHandles:[{x:400,y:240}], mirror:{x:295,y:170}, bodyStyle:'classic',
-    chrome:true},
-  race:{icon:'🏁',label:'レーシングカー',defaultColor:'#fbc531',defaultSub:'#e84118',
+    pillars:[400], wheelF:{x:220,y:300,r:36}, wheelR:{x:580,y:300,r:36}, archF:{x:220,y:302,r:62}, archR:{x:580,y:302,r:62},
+    headlight:{x:165,y:255}, taillight:{x:625,y:250}, grille:{x:130,y:262,w:16,h:32}, doorHandles:[{x:400,y:240}], mirror:{x:295,y:170}, bodyStyle:'classic', chrome:true},
+  race:{icon:'🏁',label:'レーシング',defaultColor:'#fbc531',defaultSub:'#e84118',
     body:()=>`M 100 310 L 100 295 L 130 285 L 200 275 L 280 258 L 360 235 L 410 215 L 470 215 L 530 225 L 600 245 L 680 268 Q 700 274 700 285 L 700 310 Z`,
     window:()=>`M 415 220 L 465 220 L 470 245 L 405 245 Z`,
-    pillars:[], wheelF:{x:215,y:300,r:38}, wheelR:{x:605,y:300,r:38},
-    archF:{x:215,y:302,r:62}, archR:{x:605,y:302,r:62},
-    headlight:{x:110,y:292}, taillight:{x:680,y:280},
-    grille:{x:105,y:296,w:14,h:10}, doorHandles:[], mirror:{x:400,y:230}, bodyStyle:'race', spoiler:true},
+    pillars:[], wheelF:{x:215,y:300,r:38}, wheelR:{x:605,y:300,r:38}, archF:{x:215,y:302,r:62}, archR:{x:605,y:302,r:62},
+    headlight:{x:110,y:292}, taillight:{x:680,y:280}, grille:{x:105,y:296,w:14,h:10}, doorHandles:[], mirror:{x:400,y:230}, bodyStyle:'race', spoiler:true},
   taxi:{icon:'🚕',label:'タクシー',defaultColor:'#ffcc00',defaultSub:'#1a1a1a',defaultDecal:'TAXI',
     body:()=>`M 130 310 L 130 270 Q 130 258 142 254 L 175 244 L 220 232 L 270 220 L 310 195 L 345 158 L 490 158 L 525 195 L 560 218 L 615 230 L 660 244 Q 678 250 678 262 L 678 310 Z`,
     window:()=>`M 342 175 L 488 175 L 522 220 L 312 220 Z`,
-    pillars:[410], wheelF:{x:215,y:300,r:36}, wheelR:{x:600,y:300,r:36},
-    archF:{x:215,y:302,r:60}, archR:{x:600,y:302,r:60},
-    headlight:{x:148,y:258}, taillight:{x:665,y:255},
-    grille:{x:135,y:268,w:14,h:24}, doorHandles:[{x:345,y:228},{x:475,y:228}], mirror:{x:330,y:200}, bodyStyle:'sedan', roofItem:'taxiSign'},
+    pillars:[410], wheelF:{x:215,y:300,r:36}, wheelR:{x:600,y:300,r:36}, archF:{x:215,y:302,r:60}, archR:{x:600,y:302,r:60},
+    headlight:{x:148,y:258}, taillight:{x:665,y:255}, grille:{x:135,y:268,w:14,h:24}, doorHandles:[{x:345,y:228},{x:475,y:228}], mirror:{x:330,y:200}, bodyStyle:'sedan', roofItem:'taxiSign'},
   van:{icon:'🚐',label:'バン',defaultColor:'#f4a261',defaultSub:'#ffffff',
     body:()=>`M 115 310 L 115 268 Q 115 256 128 252 L 155 244 L 185 230 L 215 150 L 250 130 L 660 130 L 685 140 L 698 168 L 698 310 Z`,
     window:()=>`M 248 148 L 658 148 L 658 215 L 218 215 Z`,
-    pillars:[360,500], wheelF:{x:210,y:300,r:34}, wheelR:{x:610,y:300,r:34},
-    archF:{x:210,y:302,r:58}, archR:{x:610,y:302,r:58},
-    headlight:{x:140,y:258}, taillight:{x:688,y:185},
-    grille:{x:120,y:265,w:16,h:25}, doorHandles:[{x:280,y:230},{x:560,y:230}], mirror:{x:240,y:160}, bodyStyle:'van'},
+    pillars:[360,500], wheelF:{x:210,y:300,r:34}, wheelR:{x:610,y:300,r:34}, archF:{x:210,y:302,r:58}, archR:{x:610,y:302,r:58},
+    headlight:{x:140,y:258}, taillight:{x:688,y:185}, grille:{x:120,y:265,w:16,h:25}, doorHandles:[{x:280,y:230},{x:560,y:230}], mirror:{x:240,y:160}, bodyStyle:'van'},
   police:{icon:'🚓',label:'パトカー',defaultColor:'#1a1a1a',defaultSub:'#ffffff',defaultDecal:'POLICE',
     body:()=>`M 130 310 L 130 270 Q 130 258 142 254 L 175 244 L 220 232 L 270 220 L 310 195 L 345 158 L 490 158 L 525 195 L 560 218 L 615 230 L 660 244 Q 678 250 678 262 L 678 310 Z`,
     window:()=>`M 342 175 L 488 175 L 522 220 L 312 220 Z`,
-    pillars:[410], wheelF:{x:215,y:300,r:36}, wheelR:{x:600,y:300,r:36},
-    archF:{x:215,y:302,r:60}, archR:{x:600,y:302,r:60},
-    headlight:{x:148,y:258}, taillight:{x:665,y:255},
-    grille:{x:135,y:268,w:14,h:24}, doorHandles:[{x:345,y:228},{x:475,y:228}], mirror:{x:330,y:200}, bodyStyle:'sedan', roofItem:'siren', sideStripe:'middle', sirenSfx:true},
+    pillars:[410], wheelF:{x:215,y:300,r:36}, wheelR:{x:600,y:300,r:36}, archF:{x:215,y:302,r:60}, archR:{x:600,y:302,r:60},
+    headlight:{x:148,y:258}, taillight:{x:665,y:255}, grille:{x:135,y:268,w:14,h:24}, doorHandles:[{x:345,y:228},{x:475,y:228}], mirror:{x:330,y:200}, bodyStyle:'sedan', roofItem:'siren', sideStripe:'middle', sirenSfx:true},
   firetruck:{icon:'🚒',label:'しょうぼうしゃ',defaultColor:'#c8201a',defaultSub:'#ffffff',defaultDecal:'FIRE',
     body:()=>`M 95 310 L 95 270 Q 95 258 108 254 L 135 246 L 165 235 L 200 180 L 215 130 L 340 130 L 360 180 L 360 235 L 380 235 L 380 145 L 700 145 L 700 310 Z`,
     window:()=>`M 218 148 L 338 148 L 358 220 L 210 220 Z`,
-    pillars:[280], wheelF:{x:190,y:298,r:38}, wheelR:{x:585,y:298,r:38},
-    archF:{x:190,y:302,r:62}, archR:{x:585,y:302,r:62},
-    headlight:{x:108,y:254}, taillight:{x:692,y:175},
-    grille:{x:98,y:262,w:22,h:36}, doorHandles:[{x:280,y:218}], mirror:{x:215,y:155}, roofItem:'fireLadder', bodyStyle:'truck', sirenSfx:true},
-  ambulance:{icon:'🚑',label:'きゅうきゅうしゃ',defaultColor:'#ffffff',defaultSub:'#d62828',defaultDecal:'救急',
+    pillars:[280], wheelF:{x:190,y:298,r:38}, wheelR:{x:585,y:298,r:38}, archF:{x:190,y:302,r:62}, archR:{x:585,y:302,r:62},
+    headlight:{x:108,y:254}, taillight:{x:692,y:175}, grille:{x:98,y:262,w:22,h:36}, doorHandles:[{x:280,y:218}], mirror:{x:215,y:155}, roofItem:'fireLadder', bodyStyle:'truck', sirenSfx:true},
+  ambulance:{icon:'🚑',label:'きゅうきゅう',defaultColor:'#ffffff',defaultSub:'#d62828',defaultDecal:'救急',
     body:()=>`M 115 310 L 115 268 Q 115 256 128 252 L 155 244 L 185 230 L 215 150 L 250 130 L 660 130 L 685 140 L 698 168 L 698 310 Z`,
     window:()=>`M 248 148 L 290 148 L 290 215 L 218 215 Z M 310 160 L 660 160 L 660 215 L 310 215 Z`,
-    pillars:[300,460,600], wheelF:{x:210,y:298,r:34}, wheelR:{x:610,y:298,r:34},
-    archF:{x:210,y:302,r:58}, archR:{x:610,y:302,r:58},
-    headlight:{x:140,y:258}, taillight:{x:688,y:185},
-    grille:{x:120,y:265,w:16,h:25}, doorHandles:[{x:280,y:225},{x:560,y:225}], mirror:{x:240,y:160}, bodyStyle:'van', roofItem:'siren', sideStripe:'cross', sirenSfx:true},
-  excavator:{icon:'🚜',label:'ショベルカー',defaultColor:'#ffb703',defaultSub:'#1a1a1a',
+    pillars:[300,460,600], wheelF:{x:210,y:298,r:34}, wheelR:{x:610,y:298,r:34}, archF:{x:210,y:302,r:58}, archR:{x:610,y:302,r:58},
+    headlight:{x:140,y:258}, taillight:{x:688,y:185}, grille:{x:120,y:265,w:16,h:25}, doorHandles:[{x:280,y:225},{x:560,y:225}], mirror:{x:240,y:160}, bodyStyle:'van', roofItem:'siren', sideStripe:'cross', sirenSfx:true},
+  excavator:{icon:'🚜',label:'ショベル',defaultColor:'#ffb703',defaultSub:'#1a1a1a',
     body:()=>`M 180 310 L 180 240 L 250 240 L 250 175 L 300 145 L 420 145 L 450 175 L 450 245 L 480 245 L 480 310 Z`,
     window:()=>`M 305 160 L 415 160 L 440 220 L 280 220 Z`,
-    pillars:[360], wheelF:{x:230,y:300,r:36}, wheelR:{x:430,y:300,r:36},
-    archF:{x:230,y:302,r:55}, archR:{x:430,y:302,r:55},
-    headlight:{x:185,y:250}, taillight:{x:475,y:250},
-    grille:{x:185,y:268,w:10,h:20}, doorHandles:[], mirror:{x:300,y:165},
-    accessories:'shovelArm', crawlers:true, bodyStyle:'construction'},
+    pillars:[360], wheelF:{x:230,y:300,r:36}, wheelR:{x:430,y:300,r:36}, archF:{x:230,y:302,r:55}, archR:{x:430,y:302,r:55},
+    headlight:{x:185,y:250}, taillight:{x:475,y:250}, grille:{x:185,y:268,w:10,h:20}, doorHandles:[], mirror:{x:300,y:165}, accessories:'shovelArm', crawlers:true, bodyStyle:'construction'},
   bulldozer:{icon:'🚜',label:'ブルドーザー',defaultColor:'#ffb703',defaultSub:'#1a1a1a',
     body:()=>`M 220 310 L 220 230 L 270 230 L 270 170 L 320 145 L 430 145 L 460 170 L 460 240 L 540 240 L 540 310 Z`,
     window:()=>`M 325 160 L 425 160 L 450 220 L 305 220 Z`,
-    pillars:[380], wheelF:{x:285,y:300,r:34}, wheelR:{x:470,y:300,r:34},
-    archF:{x:285,y:302,r:52}, archR:{x:470,y:302,r:52},
-    headlight:{x:225,y:250}, taillight:{x:535,y:250},
-    grille:{x:225,y:268,w:10,h:18}, doorHandles:[], mirror:{x:315,y:165},
-    accessories:'bulldozerBlade', crawlers:true, bodyStyle:'construction'},
-  crane:{icon:'🏗️',label:'クレーンしゃ',defaultColor:'#fb8500',defaultSub:'#1a1a1a',defaultDecal:'CRANE',
+    pillars:[380], wheelF:{x:285,y:300,r:34}, wheelR:{x:470,y:300,r:34}, archF:{x:285,y:302,r:52}, archR:{x:470,y:302,r:52},
+    headlight:{x:225,y:250}, taillight:{x:535,y:250}, grille:{x:225,y:268,w:10,h:18}, doorHandles:[], mirror:{x:315,y:165}, accessories:'bulldozerBlade', crawlers:true, bodyStyle:'construction'},
+  crane:{icon:'🏗️',label:'クレーン',defaultColor:'#fb8500',defaultSub:'#1a1a1a',defaultDecal:'CRANE',
     body:()=>`M 100 310 L 100 270 Q 100 258 113 254 L 140 246 L 170 235 L 200 175 L 215 145 L 320 145 L 340 175 L 340 235 L 700 235 L 700 310 Z`,
     window:()=>`M 218 158 L 318 158 L 338 220 L 210 220 Z`,
-    pillars:[270], wheelF:{x:200,y:298,r:36}, wheelR:{x:430,y:298,r:36}, wheelR2:{x:560,y:298,r:36}, wheelR3:{x:670,y:298,r:36},
-    archF:{x:200,y:302,r:58}, archR:{x:430,y:302,r:58},
-    headlight:{x:113,y:254}, taillight:{x:695,y:248},
-    grille:{x:103,y:262,w:18,h:30}, doorHandles:[{x:270,y:215}], mirror:{x:215,y:155},
-    accessories:'craneArm', bodyStyle:'truck'},
+    pillars:[270], wheelF:{x:200,y:298,r:36}, wheelR:{x:430,y:298,r:36}, wheelR2:{x:560,y:298,r:36}, wheelR3:{x:670,y:298,r:36}, archF:{x:200,y:302,r:58}, archR:{x:430,y:302,r:58},
+    headlight:{x:113,y:254}, taillight:{x:695,y:248}, grille:{x:103,y:262,w:18,h:30}, doorHandles:[{x:270,y:215}], mirror:{x:215,y:155}, accessories:'craneArm', bodyStyle:'truck'},
   dumptruck:{icon:'🚚',label:'ダンプカー',defaultColor:'#f4a261',defaultSub:'#1a1a1a',
     body:()=>`M 100 310 L 100 270 Q 100 258 113 254 L 140 246 L 170 235 L 200 175 L 215 145 L 320 145 L 340 175 L 340 235 L 360 235 L 360 160 L 700 160 L 720 200 L 720 240 L 360 240 L 360 310 Z`,
     window:()=>`M 218 158 L 318 158 L 338 220 L 210 220 Z`,
-    pillars:[270], wheelF:{x:200,y:298,r:38}, wheelR:{x:480,y:298,r:38}, wheelR2:{x:600,y:298,r:38},
-    archF:{x:200,y:302,r:60}, archR:{x:480,y:302,r:60}, archR2:{x:600,y:302,r:60},
-    headlight:{x:113,y:254}, taillight:{x:715,y:200},
-    grille:{x:103,y:262,w:18,h:30}, doorHandles:[{x:270,y:215}], mirror:{x:215,y:155},
-    bodyStyle:'truck', accessories:'dumpBed'},
-  mixer:{icon:'🚛',label:'ミキサーしゃ',defaultColor:'#e76f51',defaultSub:'#ffffff',defaultDecal:'MIX',
+    pillars:[270], wheelF:{x:200,y:298,r:38}, wheelR:{x:480,y:298,r:38}, wheelR2:{x:600,y:298,r:38}, archF:{x:200,y:302,r:60}, archR:{x:480,y:302,r:60}, archR2:{x:600,y:302,r:60},
+    headlight:{x:113,y:254}, taillight:{x:715,y:200}, grille:{x:103,y:262,w:18,h:30}, doorHandles:[{x:270,y:215}], mirror:{x:215,y:155}, bodyStyle:'truck', accessories:'dumpBed'},
+  mixer:{icon:'🚛',label:'ミキサー',defaultColor:'#e76f51',defaultSub:'#ffffff',defaultDecal:'MIX',
     body:()=>`M 100 310 L 100 270 Q 100 258 113 254 L 140 246 L 170 235 L 200 175 L 215 145 L 320 145 L 340 175 L 340 235 L 700 235 L 700 310 Z`,
     window:()=>`M 218 158 L 318 158 L 338 220 L 210 220 Z`,
-    pillars:[270], wheelF:{x:200,y:298,r:36}, wheelR:{x:460,y:298,r:36}, wheelR2:{x:580,y:298,r:36}, wheelR3:{x:680,y:298,r:36},
-    archF:{x:200,y:302,r:58}, archR:{x:460,y:302,r:58},
-    headlight:{x:113,y:254}, taillight:{x:695,y:248},
-    grille:{x:103,y:262,w:18,h:30}, doorHandles:[{x:270,y:215}], mirror:{x:215,y:155},
-    accessories:'mixerDrum', bodyStyle:'truck'},
+    pillars:[270], wheelF:{x:200,y:298,r:36}, wheelR:{x:460,y:298,r:36}, wheelR2:{x:580,y:298,r:36}, wheelR3:{x:680,y:298,r:36}, archF:{x:200,y:302,r:58}, archR:{x:460,y:302,r:58},
+    headlight:{x:113,y:254}, taillight:{x:695,y:248}, grille:{x:103,y:262,w:18,h:30}, doorHandles:[{x:270,y:215}], mirror:{x:215,y:155}, accessories:'mixerDrum', bodyStyle:'truck'},
   cargotruck:{icon:'🚚',label:'トラック',defaultColor:'#457b9d',defaultSub:'#ffffff',
     body:()=>`M 100 310 L 100 270 Q 100 258 113 254 L 140 246 L 170 235 L 200 175 L 215 145 L 320 145 L 340 175 L 340 235 L 360 235 L 360 140 L 720 140 L 720 310 Z`,
     window:()=>`M 218 158 L 318 158 L 338 220 L 210 220 Z`,
-    pillars:[270], wheelF:{x:200,y:298,r:38}, wheelR:{x:580,y:298,r:38}, wheelR2:{x:680,y:298,r:38},
-    archF:{x:200,y:302,r:60}, archR:{x:580,y:302,r:60}, archR2:{x:680,y:302,r:60},
-    headlight:{x:113,y:254}, taillight:{x:715,y:175},
-    grille:{x:103,y:262,w:18,h:30}, doorHandles:[{x:270,y:215}], mirror:{x:215,y:155}, bodyStyle:'truck'},
+    pillars:[270], wheelF:{x:200,y:298,r:38}, wheelR:{x:580,y:298,r:38}, wheelR2:{x:680,y:298,r:38}, archF:{x:200,y:302,r:60}, archR:{x:580,y:302,r:60}, archR2:{x:680,y:302,r:60},
+    headlight:{x:113,y:254}, taillight:{x:715,y:175}, grille:{x:103,y:262,w:18,h:30}, doorHandles:[{x:270,y:215}], mirror:{x:215,y:155}, bodyStyle:'truck'},
   tanker:{icon:'🛢️',label:'タンクローリー',defaultColor:'#c0c0c0',defaultSub:'#d62828',
     body:()=>`M 100 310 L 100 270 Q 100 258 113 254 L 140 246 L 170 235 L 200 175 L 215 145 L 320 145 L 340 175 L 340 235 L 700 235 L 700 310 Z`,
     window:()=>`M 218 158 L 318 158 L 338 220 L 210 220 Z`,
-    pillars:[270], wheelF:{x:200,y:298,r:36}, wheelR:{x:460,y:298,r:36}, wheelR2:{x:580,y:298,r:36}, wheelR3:{x:680,y:298,r:36},
-    archF:{x:200,y:302,r:58}, archR:{x:460,y:302,r:58},
-    headlight:{x:113,y:254}, taillight:{x:695,y:248},
-    grille:{x:103,y:262,w:18,h:30}, doorHandles:[{x:270,y:215}], mirror:{x:215,y:155},
-    accessories:'tankerTank', bodyStyle:'truck'},
+    pillars:[270], wheelF:{x:200,y:298,r:36}, wheelR:{x:460,y:298,r:36}, wheelR2:{x:580,y:298,r:36}, wheelR3:{x:680,y:298,r:36}, archF:{x:200,y:302,r:58}, archR:{x:460,y:302,r:58},
+    headlight:{x:113,y:254}, taillight:{x:695,y:248}, grille:{x:103,y:262,w:18,h:30}, doorHandles:[{x:270,y:215}], mirror:{x:215,y:155}, accessories:'tankerTank', bodyStyle:'truck'},
   garbage:{icon:'🚛',label:'ごみしゅうしゅう',defaultColor:'#2a9d8f',defaultSub:'#ffffff',
     body:()=>`M 100 310 L 100 270 Q 100 258 113 254 L 140 246 L 170 235 L 200 175 L 215 145 L 320 145 L 340 175 L 340 235 L 360 235 L 360 155 L 690 155 L 720 195 L 720 310 Z`,
     window:()=>`M 218 158 L 318 158 L 338 220 L 210 220 Z`,
-    pillars:[270], wheelF:{x:200,y:298,r:38}, wheelR:{x:540,y:298,r:38}, wheelR2:{x:660,y:298,r:38},
-    archF:{x:200,y:302,r:60}, archR:{x:540,y:302,r:60}, archR2:{x:660,y:302,r:60},
-    headlight:{x:113,y:254}, taillight:{x:715,y:200},
-    grille:{x:103,y:262,w:18,h:30}, doorHandles:[{x:270,y:215}], mirror:{x:215,y:155}, bodyStyle:'truck'},
+    pillars:[270], wheelF:{x:200,y:298,r:38}, wheelR:{x:540,y:298,r:38}, wheelR2:{x:660,y:298,r:38}, archF:{x:200,y:302,r:60}, archR:{x:540,y:302,r:60}, archR2:{x:660,y:302,r:60},
+    headlight:{x:113,y:254}, taillight:{x:715,y:200}, grille:{x:103,y:262,w:18,h:30}, doorHandles:[{x:270,y:215}], mirror:{x:215,y:155}, bodyStyle:'truck'},
   bus:{icon:'🚌',label:'バス',defaultColor:'#f4a261',defaultSub:'#1a3a52',
     body:()=>`M 95 310 L 95 250 Q 95 238 108 234 L 130 228 L 145 110 L 165 100 L 695 100 L 705 115 L 705 310 Z`,
     window:()=>`M 162 118 L 250 118 L 250 200 L 142 200 Z M 270 118 L 360 118 L 360 200 L 270 200 Z M 380 118 L 470 118 L 470 200 L 380 200 Z M 490 118 L 580 118 L 580 200 L 490 200 Z M 600 118 L 700 118 L 700 200 L 600 200 Z`,
-    pillars:[], wheelF:{x:195,y:298,r:38}, wheelR:{x:625,y:298,r:38},
-    archF:{x:195,y:302,r:60}, archR:{x:625,y:302,r:60},
-    headlight:{x:122,y:248}, taillight:{x:697,y:225},
-    grille:{x:100,y:240,w:14,h:25}, doorHandles:[], mirror:{x:158,y:130}, bodyStyle:'bus'},
+    pillars:[], wheelF:{x:195,y:298,r:38}, wheelR:{x:625,y:298,r:38}, archF:{x:195,y:302,r:60}, archR:{x:625,y:302,r:60},
+    headlight:{x:122,y:248}, taillight:{x:697,y:225}, grille:{x:100,y:240,w:14,h:25}, doorHandles:[], mirror:{x:158,y:130}, bodyStyle:'bus'},
   schoolbus:{icon:'🚌',label:'スクールバス',defaultColor:'#ffd60a',defaultSub:'#1a1a1a',defaultDecal:'SCHOOL',
     body:()=>`M 95 310 L 95 250 Q 95 238 108 234 L 145 220 L 175 110 L 195 100 L 695 100 L 705 115 L 705 310 Z`,
     window:()=>`M 192 118 L 260 118 L 260 195 L 175 195 Z M 280 118 L 360 118 L 360 195 L 280 195 Z M 380 118 L 460 118 L 460 195 L 380 195 Z M 480 118 L 560 118 L 560 195 L 480 195 Z M 580 118 L 660 118 L 660 195 L 580 195 Z`,
-    pillars:[], wheelF:{x:215,y:298,r:38}, wheelR:{x:625,y:298,r:38},
-    archF:{x:215,y:302,r:60}, archR:{x:625,y:302,r:60},
-    headlight:{x:108,y:262}, taillight:{x:697,y:235},
-    grille:{x:100,y:248,w:14,h:25}, doorHandles:[], mirror:{x:185,y:140},
-    bodyStyle:'bus', accessories:'busStripe'},
+    pillars:[], wheelF:{x:215,y:298,r:38}, wheelR:{x:625,y:298,r:38}, archF:{x:215,y:302,r:60}, archR:{x:625,y:302,r:60},
+    headlight:{x:108,y:262}, taillight:{x:697,y:235}, grille:{x:100,y:248,w:14,h:25}, doorHandles:[], mirror:{x:185,y:140}, bodyStyle:'bus', accessories:'busStripe'},
   tractor:{icon:'🚜',label:'トラクター',defaultColor:'#06a77d',defaultSub:'#ffd60a',
     body:()=>`M 220 310 L 220 245 L 280 245 L 280 195 L 310 165 L 410 165 L 440 195 L 440 245 L 510 245 L 510 310 Z`,
     window:()=>`M 312 178 L 408 178 L 435 232 L 290 232 Z`,
-    pillars:[370], wheelF:{x:265,y:300,r:28}, wheelR:{x:470,y:300,r:55},
-    archF:{x:265,y:302,r:42}, archR:{x:470,y:302,r:75},
-    headlight:{x:225,y:255}, taillight:{x:505,y:255},
-    grille:{x:222,y:270,w:12,h:18}, doorHandles:[], mirror:{x:305,y:175}, bodyStyle:'tractor'},
+    pillars:[370], wheelF:{x:265,y:300,r:28}, wheelR:{x:470,y:300,r:55}, archF:{x:265,y:302,r:42}, archR:{x:470,y:302,r:75},
+    headlight:{x:225,y:255}, taillight:{x:505,y:255}, grille:{x:222,y:270,w:12,h:18}, doorHandles:[], mirror:{x:305,y:175}, bodyStyle:'tractor'},
   mailtruck:{icon:'📮',label:'ゆうびんしゃ',defaultColor:'#d62828',defaultSub:'#ffffff',defaultDecal:'POST',
     body:()=>`M 130 310 L 130 268 Q 130 256 143 252 L 170 244 L 200 232 L 225 175 L 250 150 L 600 150 L 625 175 L 670 235 L 690 250 Q 700 254 700 264 L 700 310 Z`,
     window:()=>`M 252 162 L 320 162 L 320 220 L 232 220 Z M 340 162 L 600 162 L 620 220 L 340 220 Z`,
-    pillars:[330], wheelF:{x:220,y:298,r:32}, wheelR:{x:620,y:298,r:32},
-    archF:{x:220,y:302,r:54}, archR:{x:620,y:302,r:54},
-    headlight:{x:148,y:258}, taillight:{x:685,y:255},
-    grille:{x:135,y:268,w:14,h:22}, doorHandles:[{x:290,y:230}], mirror:{x:248,y:170}, bodyStyle:'van'}
+    pillars:[330], wheelF:{x:220,y:298,r:32}, wheelR:{x:620,y:298,r:32}, archF:{x:220,y:302,r:54}, archR:{x:620,y:302,r:54},
+    headlight:{x:148,y:258}, taillight:{x:685,y:255}, grille:{x:135,y:268,w:14,h:22}, doorHandles:[{x:290,y:230}], mirror:{x:248,y:170}, bodyStyle:'van'}
 };
-
 const PALETTE = ['#e63946','#ff6b6b','#ffa500','#ffd60a','#06d6a0','#2a9d8f','#4ecdc4','#118ab2','#6c5ce7','#a55eea','#ff6b9d','#ffffff','#1a1a1a','#8b4513','#c0c0c0'];
 
 function renderStepDots() {
-  document.getElementById('stepDots').innerHTML = STEPS.map((s,i)=>
-    `<div class="step-dot ${i===currentStep?'active':''} ${i<currentStep?'done':''}"></div>`
-  ).join('');
+  document.getElementById('stepDots').innerHTML = STEPS.map((s,i)=>`<div class="step-dot ${i===currentStep?'active':''} ${i<currentStep?'done':''}"></div>`).join('');
 }
-
 function renderBgBar() {
-  document.getElementById('bgBar').innerHTML = Object.entries(BACKGROUNDS).map(([k,v])=>
-    `<button class="bg-btn ${state.bgType===k?'active':''}" onclick="setBg('${k}')">${v.label}</button>`
-  ).join('');
+  document.getElementById('bgBar').innerHTML = Object.entries(BACKGROUNDS).map(([k,v])=>`<button class="bg-btn ${state.bgType===k?'active':''}" onclick="setBg('${k}')">${v}</button>`).join('');
 }
-function setBg(k) {
-  state.bgType = k;
-  sfx.tap();
-  renderBgBar();
-  render();
-  if (audio.bgmOn) { stopBGM(); startBGM(); }
-}
+function setBg(k) { state.bgType = k; sfx.tap(); renderBgBar(); render(); if (audio.bgmOn) { clearTimeout(audio.bgmTimer); startBGM(); } }
 
 function renderPanel() {
   const step = STEPS[currentStep];
   const panel = document.getElementById('panel');
   let html = '';
-
   if (step.id === 'category') {
-    html = `<h2>どんな くるま？</h2>
-      <div class="car-tab-bar">
-        ${Object.entries(CATEGORIES).map(([k,c])=>`
-          <button class="car-tab ${state.category===k?'active':''}" onclick="selectCategory('${k}')">${c.label}</button>
-        `).join('')}
-      </div>
-      <p style="text-align:center;font-size:14px;color:#666;margin-top:14px">↑ うえから えらんでね</p>`;
+    html = `<h2>どんな くるま？</h2><div class="car-tab-bar">${Object.entries(CATEGORIES).map(([k,c])=>`<button class="car-tab ${state.category===k?'active':''}" onclick="selectCategory('${k}')">${c.label}</button>`).join('')}</div><p style="text-align:center;font-size:14px;color:#666;margin-top:14px">えらんだら 「つぎへ」を おしてね →</p>`;
   } else if (step.id === 'body') {
     const list = CATEGORIES[state.category].cars;
-    html = `<h2>すきな くるまを えらぼう</h2>
-      <div class="car-grid">${list.map(k=>{
-        const c = CARS[k];
-        return `<div class="car-card ${state.bodyType===k?'selected':''}" onclick="selectBody('${k}')">
-          <div class="car-icon">${c.icon}</div>
-          <div class="car-label">${c.label}</div>
-        </div>`;
-      }).join('')}</div>`;
+    html = `<h2>すきな くるまを えらぼう</h2><div class="car-grid">${list.map(k=>{const c=CARS[k];return `<div class="car-card ${state.bodyType===k?'selected':''}" onclick="selectBody('${k}')"><div class="car-icon">${c.icon}</div><div class="car-label">${c.label}</div></div>`;}).join('')}</div>`;
   } else if (step.id === 'color') {
-    html = `<h2>すきな いろ</h2>
-      <p style="text-align:center;font-size:14px;color:#666;margin-bottom:10px">ボディの いろ</p>
-      <div class="color-grid">${PALETTE.map(c=>`
-        <div class="color-swatch ${state.bodyColor===c?'selected':''}" style="background:${c}" onclick="setColor('body','${c}')"></div>
-      `).join('')}</div>
-      <p style="text-align:center;font-size:14px;color:#666;margin:14px 0 10px">やね・もよう の いろ</p>
-      <div class="color-grid">${PALETTE.map(c=>`
-        <div class="color-swatch ${state.subColor===c?'selected':''}" style="background:${c}" onclick="setColor('sub','${c}')"></div>
-      `).join('')}</div>`;
+    html = `<h2>すきな いろ</h2><p style="text-align:center;font-size:14px;color:#666;margin-bottom:10px">ボディの いろ</p><div class="color-grid">${PALETTE.map(c=>`<div class="color-swatch ${state.bodyColor===c?'selected':''}" style="background:${c}" onclick="setColor('body','${c}')"></div>`).join('')}</div><p style="text-align:center;font-size:14px;color:#666;margin:14px 0 10px">やね・もよう の いろ</p><div class="color-grid">${PALETTE.map(c=>`<div class="color-swatch ${state.subColor===c?'selected':''}" style="background:${c}" onclick="setColor('sub','${c}')"></div>`).join('')}</div>`;
   } else if (step.id === 'wheel') {
     const wheels = [['spoke5','スポーク'],['mesh','メッシュ'],['turbine','タービン'],['star','ほし'],['disk','まる'],['offroad','ごつい']];
-    html = `<h2>タイヤを えらぼう</h2>
-      <div class="wheel-grid">${wheels.map(([v,l])=>`
-        <div class="wheel-card ${state.wheelStyle===v?'selected':''}" onclick="setWheel('${v}')">
-          <svg viewBox="-40 -40 80 80">${wheelPreview(v)}</svg>
-          <div class="lbl">${l}</div>
-        </div>
-      `).join('')}</div>
-      <p style="text-align:center;font-size:14px;color:#666;margin:14px 0 10px">ホイールいろ</p>
-      <div class="color-grid">${['#cccccc','#ffd60a','#1a1a1a','#4ecdc4','#ff6b6b'].map(c=>`
-        <div class="color-swatch ${state.hubColor===c?'selected':''}" style="background:${c}" onclick="setHub('${c}')"></div>
-      `).join('')}</div>`;
+    html = `<h2>タイヤを えらぼう</h2><div class="wheel-grid">${wheels.map(([v,l])=>`<div class="wheel-card ${state.wheelStyle===v?'selected':''}" onclick="setWheel('${v}')"><svg viewBox="-40 -40 80 80">${wheelPreview(v)}</svg><div class="lbl">${l}</div></div>`).join('')}</div><p style="text-align:center;font-size:14px;color:#666;margin:14px 0 10px">ホイールいろ</p><div class="color-grid">${['#cccccc','#ffd60a','#1a1a1a','#4ecdc4','#ff6b6b'].map(c=>`<div class="color-swatch ${state.hubColor===c?'selected':''}" style="background:${c}" onclick="setHub('${c}')"></div>`).join('')}</div>`;
   } else if (step.id === 'decal') {
-    html = `<h2>もじを いれる？</h2>
-      <p style="text-align:center;font-size:14px;color:#666;margin-bottom:12px">いれなくても いいよ</p>
-      <input type="text" maxlength="10" placeholder="れい：POLICE" value="${escapeHtml(state.decalText)}"
-        oninput="state.decalText=this.value;render()"
-        style="width:100%;padding:14px;font-size:20px;border:3px solid #ffd966;border-radius:12px;text-align:center;font-weight:900">
-      <p style="text-align:center;font-size:14px;color:#666;margin:14px 0 10px">よく つかうもの</p>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-        ${['POLICE','FIRE','救急','TAXI','SCHOOL','POST','','GO!','★'].map(t=>`
-          <button onclick="state.decalText='${t}';sfx.tap();renderPanel();render()" style="padding:10px;border:3px solid #ffd966;background:#fff;border-radius:10px;font-size:16px;font-weight:900;cursor:pointer">${t||'なし'}</button>
-        `).join('')}
-      </div>`;
+    html = `<h2>もじを いれる？</h2><p style="text-align:center;font-size:14px;color:#666;margin-bottom:12px">いれなくても いいよ</p><input type="text" maxlength="10" placeholder="れい：POLICE" value="${escapeHtml(state.decalText)}" oninput="state.decalText=this.value;render()" style="width:100%;padding:14px;font-size:20px;border:3px solid #ffd966;border-radius:12px;text-align:center;font-weight:900"><p style="text-align:center;font-size:14px;color:#666;margin:14px 0 10px">よく つかうもの</p><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">${['POLICE','FIRE','救急','TAXI','SCHOOL','POST','','GO!','★'].map(t=>`<button onclick="state.decalText='${t}';sfx.tap();renderPanel();render()" style="padding:10px;border:3px solid #ffd966;background:#fff;border-radius:10px;font-size:16px;font-weight:900;cursor:pointer">${t||'なし'}</button>`).join('')}</div>`;
   } else if (step.id === 'finish') {
     const car = CARS[state.bodyType];
-    html = `<div class="finish-msg">
-      <div class="big">🎉</div>
-      <div class="ttl">かんせい！</div>
-      <div style="font-size:20px">${car.icon} ${car.label}</div>
-    </div>
-    <div class="finish-actions">
-      <button class="btn-play" onclick="toggleDemo()">${demo.on?'■ とめる':'🏁 はしらせる！'}</button>
-      <button class="btn-horn" onclick="hornBeep()">📯 クラクション</button>
-      <button class="btn-save" onclick="exportPNG();sfx.ok()">📷 がぞうで ほぞん</button>
-      <button class="btn-again" onclick="resetAll()">🔄 もういっかい</button>
-    </div>`;
+    html = `<div class="finish-msg"><div class="big">🎉</div><div class="ttl">かんせい！</div><div style="font-size:20px">${car.icon} ${car.label}</div></div><div class="finish-actions"><button class="btn-play" onclick="toggleDemo()">${demo.on?'■ とめる':'🏁 はしらせる！'}</button><button class="btn-horn" onclick="hornBeep()">📯 クラクション</button><button class="btn-save" onclick="exportPNG();sfx.ok()">📷 がぞうで ほぞん</button><button class="btn-again" onclick="resetAll()">🔄 もういっかい</button></div>`;
   }
-
   panel.innerHTML = html;
   updateNavButtons();
 }
-
 function updateNavButtons() {
   const back = document.getElementById('btnBack');
   const next = document.getElementById('btnNext');
   back.style.visibility = currentStep === 0 ? 'hidden' : 'visible';
-  if (currentStep === STEPS.length - 1) {
-    next.style.visibility = 'hidden';
-  } else {
+  if (currentStep === STEPS.length - 1) { next.style.visibility = 'hidden'; }
+  else {
     next.style.visibility = 'visible';
-    const can = currentStep === 0 ? true : (currentStep === 1 ? state.bodyType !== null : true);
+    const can = currentStep === 1 ? state.bodyType !== null : true;
     next.disabled = !can;
     next.textContent = currentStep === STEPS.length - 2 ? 'かんせい！🎉' : 'つぎへ →';
   }
 }
-
 function selectCategory(c) { state.category = c; sfx.tap(); renderPanel(); }
 function selectBody(t) {
   state.bodyType = t;
@@ -518,14 +340,7 @@ function setHub(c) { state.hubColor = c; sfx.tap(); renderPanel(); render(); }
 function nextStep() { if (currentStep < STEPS.length-1) { currentStep++; if (currentStep === STEPS.length-1) sfx.finish(); else sfx.tap(); renderStepDots(); renderPanel(); render(); } }
 function prevStep() { if (currentStep > 0) { currentStep--; sfx.tap(); renderStepDots(); renderPanel(); render(); } }
 function resetAll() { currentStep = 0; state.bodyType = null; state.decalText = ''; if (demo.on) toggleDemo(); renderStepDots(); renderPanel(); render(); }
-
-function wheelPreview(style) {
-  const tmp = state.wheelStyle;
-  state.wheelStyle = style;
-  const html = renderWheelInner(0, 0, 30, 0);
-  state.wheelStyle = tmp;
-  return html;
-}
+function wheelPreview(style) { const tmp = state.wheelStyle; state.wheelStyle = style; const html = renderWheelInner(0,0,30,0); state.wheelStyle = tmp; return html; }
 
 const demo = { on:false, t:0, speed:10, bgOffset:0, wheelAngle:0, raf:null, sirenTimer:null };
 function toggleDemo() {
@@ -537,66 +352,32 @@ function toggleDemo() {
     const car = CARS[state.bodyType];
     if (car && car.sirenSfx) startSiren();
     loop();
-  } else {
-    cancelAnimationFrame(demo.raf);
-    stopSiren();
-    render();
-  }
+  } else { cancelAnimationFrame(demo.raf); clearTimeout(demo.sirenTimer); render(); }
 }
 function startSiren() {
   let high = true;
-  const beat = () => {
-    if (!demo.on) return;
-    tone(high ? 880 : 660, 0.3, 'sine', 0.1);
-    high = !high;
-    demo.sirenTimer = setTimeout(beat, 350);
-  };
+  const beat = () => { if (!demo.on) return; tone(high?880:660, 0.3, 'sine', 0.1); high = !high; demo.sirenTimer = setTimeout(beat, 350); };
   beat();
 }
-function stopSiren() { clearTimeout(demo.sirenTimer); }
-function loop() {
-  if (!demo.on) return;
-  demo.t++;
-  demo.bgOffset = (demo.bgOffset + demo.speed) % 80;
-  demo.wheelAngle = (demo.wheelAngle + demo.speed*5) % 360;
-  render();
-  demo.raf = requestAnimationFrame(loop);
-}
+function loop() { if (!demo.on) return; demo.t++; demo.bgOffset = (demo.bgOffset + demo.speed) % 80; demo.wheelAngle = (demo.wheelAngle + demo.speed*5) % 360; render(); demo.raf = requestAnimationFrame(loop); }
 document.getElementById('demoSpeed').addEventListener('input', e => { demo.speed = Number(e.target.value); });
 
-/* ===== 描画 ===== */
 function render() {
   const svg = document.getElementById('stage');
   if (!state.bodyType) {
-    svg.innerHTML = `${renderBackground()}<text x="400" y="200" text-anchor="middle" font-size="32" fill="rgba(255,255,255,.95)" font-weight="900" stroke="rgba(0,0,0,.5)" stroke-width="1">⬅ くるまを えらんでね</text>`;
+    svg.innerHTML = `${renderBackground()}<text x="400" y="200" text-anchor="middle" font-size="32" fill="#fff" font-weight="900" stroke="#000" stroke-width="1">⬅ くるまを えらんでね</text>`;
     return;
   }
   const car = CARS[state.bodyType];
   const bounce = demo.on ? Math.sin(demo.t * 0.3) * 2 : 0;
   const grads = `<defs>
-    <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${lighten(state.bodyColor, 0.4)}"/>
-      <stop offset="25%" stop-color="${lighten(state.bodyColor, 0.15)}"/>
-      <stop offset="50%" stop-color="${state.bodyColor}"/>
-      <stop offset="100%" stop-color="${darken(state.bodyColor, 0.3)}"/>
-    </linearGradient>
-    <linearGradient id="bodyShine" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="rgba(255,255,255,0.5)"/>
-      <stop offset="40%" stop-color="rgba(255,255,255,0.05)"/>
-      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
-    </linearGradient>
-    <linearGradient id="subGrad" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${lighten(state.subColor, 0.2)}"/>
-      <stop offset="100%" stop-color="${state.subColor}"/>
-    </linearGradient>
-    <linearGradient id="glassGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="rgba(180,220,255,0.85)"/>
-      <stop offset="50%" stop-color="rgba(80,140,200,0.75)"/>
-      <stop offset="100%" stop-color="rgba(40,80,140,0.7)"/>
-    </linearGradient>
+    <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${lighten(state.bodyColor,0.4)}"/><stop offset="25%" stop-color="${lighten(state.bodyColor,0.15)}"/><stop offset="50%" stop-color="${state.bodyColor}"/><stop offset="100%" stop-color="${darken(state.bodyColor,0.3)}"/></linearGradient>
+    <linearGradient id="bodyShine" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(255,255,255,0.5)"/><stop offset="40%" stop-color="rgba(255,255,255,0.05)"/><stop offset="100%" stop-color="rgba(255,255,255,0)"/></linearGradient>
+    <linearGradient id="subGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${lighten(state.subColor,0.2)}"/><stop offset="100%" stop-color="${state.subColor}"/></linearGradient>
+    <linearGradient id="glassGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="rgba(180,220,255,0.85)"/><stop offset="50%" stop-color="rgba(80,140,200,0.75)"/><stop offset="100%" stop-color="rgba(40,80,140,0.7)"/></linearGradient>
     <radialGradient id="headGlow"><stop offset="0%" stop-color="#ffffcc" stop-opacity="1"/><stop offset="100%" stop-color="#ffff00" stop-opacity="0"/></radialGradient>
-    <radialGradient id="sirenRedGlow"><stop offset="0%" stop-color="#ff0000" stop-opacity="0.8"/><stop offset="100%" stop-color="#ff0000" stop-opacity="0"/></radialGradient>
-    <radialGradient id="sirenBlueGlow"><stop offset="0%" stop-color="#0000ff" stop-opacity="0.8"/><stop offset="100%" stop-color="#0000ff" stop-opacity="0"/></radialGradient>
+    <radialGradient id="redGlow"><stop offset="0%" stop-color="#ff0000" stop-opacity="0.8"/><stop offset="100%" stop-color="#ff0000" stop-opacity="0"/></radialGradient>
+    <radialGradient id="blueGlow"><stop offset="0%" stop-color="#0000ff" stop-opacity="0.8"/><stop offset="100%" stop-color="#0000ff" stop-opacity="0"/></radialGradient>
     <clipPath id="bodyClip"><path d="${car.body()}"/></clipPath>
   </defs>`;
   const bg = renderBackground();
@@ -608,69 +389,39 @@ function render() {
   const bodyEl = `<path d="${car.body()}" fill="url(#bodyGrad)" stroke="#1a1a1a" stroke-width="4" stroke-linejoin="round" transform="translate(0,${bounce})"/>`;
   const bodyShine = `<path d="${car.body()}" fill="url(#bodyShine)" clip-path="url(#bodyClip)" transform="translate(0,${bounce})"/>`;
   let subPaint = '';
-  if (['sedan'].includes(car.bodyStyle) && state.subColor !== state.bodyColor && car.sideStripe === 'middle') {
+  if (car.bodyStyle === 'sedan' && state.subColor !== state.bodyColor && car.sideStripe === 'middle') {
     subPaint = `<rect x="0" y="262" width="800" height="50" fill="url(#subGrad)" clip-path="url(#bodyClip)" transform="translate(0,${bounce})"/>`;
   } else if (['van','truck','bus','wagon','suv'].includes(car.bodyStyle) && state.subColor !== state.bodyColor) {
     subPaint = `<rect x="0" y="100" width="800" height="40" fill="url(#subGrad)" clip-path="url(#bodyClip)" transform="translate(0,${bounce})"/>`;
   }
   let stripe = '';
   if (car.sideStripe === 'cross') stripe = `<rect x="0" y="180" width="800" height="8" fill="${state.subColor}" clip-path="url(#bodyClip)" transform="translate(0,${bounce})"/>`;
-  // パネルライン
-  let panelLines = '';
-  (car.panelLines || []).forEach(p => {
-    panelLines += `<line x1="${p.x1}" y1="${p.y1+bounce}" x2="${p.x2}" y2="${p.y2+bounce}" stroke="rgba(0,0,0,.5)" stroke-width="1.5"/>`;
-  });
-  // ガラス（リアル）
   let glass = '';
   if (car.window) {
     glass = `<path d="${car.window()}" fill="url(#glassGrad)" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round" transform="translate(0,${bounce})"/>`;
-    // 反射ハイライト
-    glass += `<path d="${car.window()}" fill="rgba(255,255,255,0.3)" clip-path="url(#bodyClip)" transform="translate(0,${bounce-2}) scale(0.95) translate(20,5)"/>`;
-    // クロームフレーム
-    if (car.chrome) {
-      glass += `<path d="${car.window()}" fill="none" stroke="#e0e0e0" stroke-width="1.5" transform="translate(0,${bounce})"/>`;
-    }
+    if (car.chrome) glass += `<path d="${car.window()}" fill="none" stroke="#e0e0e0" stroke-width="1.5" transform="translate(0,${bounce})"/>`;
   }
   let pillars = '';
   (car.pillars || []).forEach(px => { pillars += `<line x1="${px}" y1="155" x2="${px}" y2="220" stroke="${state.bodyColor}" stroke-width="6" stroke-linecap="round" transform="translate(0,${bounce})"/>`; });
-  // ライト（リアル化）
   let lights = '';
   const h = car.headlight, t = car.taillight;
-  // ヘッドライト多層
-  lights += `<ellipse cx="${h.x}" cy="${h.y+bounce}" rx="14" ry="10" fill="#fff7c2" stroke="#1a1a1a" stroke-width="2.5"/>`;
-  lights += `<ellipse cx="${h.x}" cy="${h.y+bounce}" rx="9" ry="6" fill="#fffae6"/>`;
+  lights += `<ellipse cx="${h.x}" cy="${h.y+bounce}" rx="13" ry="9" fill="#fff7c2" stroke="#1a1a1a" stroke-width="2.5"/>`;
+  lights += `<ellipse cx="${h.x}" cy="${h.y+bounce}" rx="8" ry="5" fill="#fffae6"/>`;
   lights += `<ellipse cx="${h.x-2}" cy="${h.y+bounce-2}" rx="3" ry="2" fill="#ffffff"/>`;
-  // テールライト
-  lights += `<ellipse cx="${t.x}" cy="${t.y+bounce}" rx="11" ry="9" fill="#cc1111" stroke="#1a1a1a" stroke-width="2.5"/>`;
-  lights += `<ellipse cx="${t.x}" cy="${t.y+bounce}" rx="7" ry="5" fill="#ff5555"/>`;
-  lights += `<ellipse cx="${t.x-1}" cy="${t.y+bounce-1}" rx="2" ry="1.5" fill="#ffaaaa"/>`;
-  // フォグライト
-  if (car.foglight) {
-    lights += `<circle cx="${car.foglight.x}" cy="${car.foglight.y+bounce}" r="5" fill="#ffe0a0" stroke="#1a1a1a" stroke-width="2"/>`;
-  }
+  lights += `<ellipse cx="${t.x}" cy="${t.y+bounce}" rx="10" ry="8" fill="#cc1111" stroke="#1a1a1a" stroke-width="2.5"/>`;
+  lights += `<ellipse cx="${t.x}" cy="${t.y+bounce}" rx="6" ry="4" fill="#ff5555"/>`;
   if (demo.on) lights += `<ellipse cx="${h.x-30}" cy="${h.y+bounce}" rx="45" ry="15" fill="url(#headGlow)" opacity="0.8"/>`;
-  // グリル（リアル）
   let grille = '';
   if (car.grille) {
     const g = car.grille;
     grille = `<rect x="${g.x}" y="${g.y+bounce}" width="${g.w}" height="${g.h}" fill="#1a1a1a" stroke="#333" stroke-width="1.5" rx="2"/>`;
-    for (let i = 0; i < Math.floor(g.h/5); i++) {
-      grille += `<line x1="${g.x+2}" y1="${g.y+bounce+4+i*5}" x2="${g.x+g.w-2}" y2="${g.y+bounce+4+i*5}" stroke="#444" stroke-width="1"/>`;
-    }
+    for (let i = 0; i < Math.floor(g.h/5); i++) grille += `<line x1="${g.x+2}" y1="${g.y+bounce+4+i*5}" x2="${g.x+g.w-2}" y2="${g.y+bounce+4+i*5}" stroke="#444" stroke-width="1"/>`;
     if (car.chrome) grille += `<rect x="${g.x-1}" y="${g.y+bounce-1}" width="${g.w+2}" height="${g.h+2}" fill="none" stroke="#e8e8e8" stroke-width="1.5" rx="3"/>`;
   }
-  // ドアハンドル（クローム）
   let handles = '';
-  (car.doorHandles || []).forEach(dh => {
-    handles += `<rect x="${dh.x-9}" y="${dh.y+bounce-2}" width="18" height="4" rx="2" fill="#1a1a1a"/>`;
-    handles += `<rect x="${dh.x-8}" y="${dh.y+bounce-1.5}" width="16" height="1.5" fill="rgba(255,255,255,.5)"/>`;
-  });
-  // ミラー
+  (car.doorHandles || []).forEach(dh => { handles += `<rect x="${dh.x-9}" y="${dh.y+bounce-2}" width="18" height="4" rx="2" fill="#1a1a1a"/><rect x="${dh.x-8}" y="${dh.y+bounce-1.5}" width="16" height="1.5" fill="rgba(255,255,255,.5)"/>`; });
   let mirror = '';
-  if (car.mirror) {
-    mirror = `<path d="M ${car.mirror.x} ${car.mirror.y+bounce} l 14 -3 l 3 10 l -14 3 z" fill="${state.bodyColor}" stroke="#1a1a1a" stroke-width="2"/>`;
-    mirror += `<path d="M ${car.mirror.x+3} ${car.mirror.y+bounce-1} l 10 -2 l 1 6 l -10 2 z" fill="rgba(180,220,255,0.6)"/>`;
-  }
+  if (car.mirror) { mirror = `<path d="M ${car.mirror.x} ${car.mirror.y+bounce} l 14 -3 l 3 10 l -14 3 z" fill="${state.bodyColor}" stroke="#1a1a1a" stroke-width="2"/>`; mirror += `<path d="M ${car.mirror.x+3} ${car.mirror.y+bounce-1} l 10 -2 l 1 6 l -10 2 z" fill="rgba(180,220,255,0.6)"/>`; }
   let roofItem = '';
   if (car.roofItem === 'siren') roofItem = renderSiren(bounce);
   if (car.roofItem === 'fireLadder') roofItem = renderFireLadder(bounce);
@@ -684,27 +435,16 @@ function render() {
   if (car.accessories === 'tankerTank') accessories = renderTankerTank(bounce);
   if (car.accessories === 'busStripe') accessories = renderBusStripe(bounce);
   if (car.spoiler) accessories += `<path d="M 660 240 L 705 215 L 720 215 L 720 235 Z" fill="${state.bodyColor}" stroke="#1a1a1a" stroke-width="2.5" transform="translate(0,${bounce})"/>`;
-  // デカール（エンブレム風）
   let decal = '';
   if (state.decalText) {
     const w = state.decalText.length * 16 + 30;
-    decal = `<g transform="translate(400,${245+bounce})">
-      <rect x="${-w/2-2}" y="-22" width="${w+4}" height="40" fill="rgba(0,0,0,.3)" rx="6"/>
-      <rect x="${-w/2}" y="-20" width="${w}" height="36" fill="${state.subColor}" stroke="#1a1a1a" stroke-width="3" rx="5"/>
-      <rect x="${-w/2+2}" y="-18" width="${w-4}" height="3" fill="rgba(255,255,255,.5)" rx="2"/>
-      <text x="0" y="8" font-size="24" font-weight="900" fill="#1a1a1a" text-anchor="middle" font-family="Impact,sans-serif" letter-spacing="2">${escapeHtml(state.decalText)}</text>
-    </g>`;
+    decal = `<g transform="translate(400,${245+bounce})"><rect x="${-w/2}" y="-20" width="${w}" height="36" fill="${state.subColor}" stroke="#1a1a1a" stroke-width="3" rx="5"/><rect x="${-w/2+2}" y="-18" width="${w-4}" height="3" fill="rgba(255,255,255,.5)" rx="2"/><text x="0" y="8" font-size="24" font-weight="900" fill="#1a1a1a" text-anchor="middle" font-family="Impact,sans-serif" letter-spacing="2">${escapeHtml(state.decalText)}</text></g>`;
   }
   let wheels = '';
   if (!car.crawlers) [car.wheelF, car.wheelR, car.wheelR2, car.wheelR3].filter(Boolean).forEach(w => { wheels += renderWheel(w); });
-  // 排気ガス（走行中）
   let exhaust = '';
-  if (demo.on) {
-    const ex1 = (demo.t*2)%30;
-    exhaust = `<circle cx="${85-ex1}" cy="${300+Math.sin(demo.t*0.2)*5}" r="${8+ex1*0.3}" fill="rgba(180,180,180,${0.4-ex1*0.01})"/>
-               <circle cx="${75-ex1*1.2}" cy="${305+Math.sin(demo.t*0.3)*4}" r="${10+ex1*0.3}" fill="rgba(200,200,200,${0.3-ex1*0.01})"/>`;
-  }
-  svg.innerHTML = `${grads}${bg}${shadow}${exhaust}${crawlers}${arches}${bodyEl}${bodyShine}${subPaint}${stripe}${panelLines}${glass}${pillars}${grille}${lights}${handles}${mirror}${roofItem}${accessories}${decal}${wheels}`;
+  if (demo.on) { const e=(demo.t*2)%30; exhaust = `<circle cx="${85-e}" cy="${300+Math.sin(demo.t*0.2)*5}" r="${8+e*0.3}" fill="rgba(180,180,180,${0.4-e*0.01})"/>`; }
+  svg.innerHTML = `${grads}${bg}${shadow}${exhaust}${crawlers}${arches}${bodyEl}${bodyShine}${subPaint}${stripe}${glass}${pillars}${grille}${lights}${handles}${mirror}${roofItem}${accessories}${decal}${wheels}`;
 }
 
 function renderSiren(bounce) {
@@ -712,145 +452,47 @@ function renderSiren(bounce) {
   const p = positions[state.bodyType] || {x:400,y:155};
   const blink = demo.on && Math.floor(demo.t/8)%2===0;
   let glow = '';
-  if (demo.on) {
-    if (blink) glow = `<circle cx="${p.x-16}" cy="${p.y+bounce-9}" r="35" fill="url(#sirenRedGlow)"/>`;
-    else glow = `<circle cx="${p.x+16}" cy="${p.y+bounce-9}" r="35" fill="url(#sirenBlueGlow)"/>`;
-  }
-  return `${glow}<g transform="translate(${p.x},${p.y+bounce})">
-    <rect x="-32" y="-16" width="64" height="14" rx="3" fill="#1a1a1a"/>
-    <rect x="-30" y="-14" width="28" height="10" fill="${blink?'#ff3333':'#660000'}"/>
-    <rect x="2" y="-14" width="28" height="10" fill="${blink?'#3333ff':'#000066'}"/>
-    <rect x="-32" y="-16" width="64" height="2" fill="rgba(255,255,255,.4)"/>
-  </g>`;
+  if (demo.on) glow = blink ? `<circle cx="${p.x-16}" cy="${p.y+bounce-9}" r="35" fill="url(#redGlow)"/>` : `<circle cx="${p.x+16}" cy="${p.y+bounce-9}" r="35" fill="url(#blueGlow)"/>`;
+  return `${glow}<g transform="translate(${p.x},${p.y+bounce})"><rect x="-32" y="-16" width="64" height="14" rx="3" fill="#1a1a1a"/><rect x="-30" y="-14" width="28" height="10" fill="${blink?'#ff3333':'#660000'}"/><rect x="2" y="-14" width="28" height="10" fill="${blink?'#3333ff':'#000066'}"/></g>`;
 }
-function renderFireLadder(bounce) {
-  return `<g transform="translate(540,140) translate(0,${bounce})">
-    <rect x="-160" y="-10" width="320" height="6" fill="#d0d0d0" stroke="#1a1a1a" stroke-width="1.5"/>
-    <rect x="-160" y="0" width="320" height="6" fill="#d0d0d0" stroke="#1a1a1a" stroke-width="1.5"/>
-    ${Array.from({length:16}).map((_,i)=>`<rect x="${-155+i*20}" y="-10" width="3" height="16" fill="#888"/>`).join('')}
-    <circle cx="-100" cy="-5" r="6" fill="#ffd60a" stroke="#1a1a1a" stroke-width="1.5"/>
-  </g>`;
-}
-function renderTaxiSign(bounce) {
-  return `<g transform="translate(415,158) translate(0,${bounce})">
-    <rect x="-28" y="-18" width="56" height="16" rx="3" fill="${state.subColor}" stroke="#1a1a1a" stroke-width="2"/>
-    <rect x="-26" y="-16" width="52" height="3" fill="rgba(255,255,255,.5)" rx="1"/>
-    <text x="0" y="-5" font-size="11" font-weight="900" fill="${state.bodyColor}" text-anchor="middle">TAXI</text>
-  </g>`;
-}
+function renderFireLadder(bounce) { return `<g transform="translate(540,140) translate(0,${bounce})"><rect x="-160" y="-10" width="320" height="6" fill="#d0d0d0" stroke="#1a1a1a" stroke-width="1.5"/><rect x="-160" y="0" width="320" height="6" fill="#d0d0d0" stroke="#1a1a1a" stroke-width="1.5"/>${Array.from({length:16}).map((_,i)=>`<rect x="${-155+i*20}" y="-10" width="3" height="16" fill="#888"/>`).join('')}</g>`; }
+function renderTaxiSign(bounce) { return `<g transform="translate(415,158) translate(0,${bounce})"><rect x="-28" y="-18" width="56" height="16" rx="3" fill="${state.subColor}" stroke="#1a1a1a" stroke-width="2"/><text x="0" y="-5" font-size="11" font-weight="900" fill="${state.bodyColor}" text-anchor="middle">TAXI</text></g>`; }
 function renderShovelArm(bounce) {
   const ang = demo.on ? Math.sin(demo.t*0.05)*10 : 0;
-  return `<g transform="translate(360,200) translate(0,${bounce}) rotate(${ang})">
-    <rect x="0" y="-12" width="120" height="20" fill="${state.bodyColor}" stroke="#1a1a1a" stroke-width="2.5" rx="3"/>
-    <g transform="translate(120,0)">
-      <rect x="0" y="-10" width="100" height="16" fill="${state.bodyColor}" stroke="#1a1a1a" stroke-width="2.5" rx="3" transform="rotate(35)"/>
-      <path d="M 60 50 L 110 50 L 115 85 L 65 85 Z" fill="#1a1a1a" stroke="#000" stroke-width="2"/>
-    </g>
-  </g>`;
+  return `<g transform="translate(360,200) translate(0,${bounce}) rotate(${ang})"><rect x="0" y="-12" width="120" height="20" fill="${state.bodyColor}" stroke="#1a1a1a" stroke-width="2.5" rx="3"/><g transform="translate(120,0)"><rect x="0" y="-10" width="100" height="16" fill="${state.bodyColor}" stroke="#1a1a1a" stroke-width="2.5" rx="3" transform="rotate(35)"/><path d="M 60 50 L 110 50 L 115 85 L 65 85 Z" fill="#1a1a1a" stroke="#000" stroke-width="2"/></g></g>`;
 }
-function renderBulldozerBlade(bounce) {
-  return `<g transform="translate(170,260) translate(0,${bounce})">
-    <path d="M 0 -50 Q -10 -20 0 20 L 50 25 L 50 -45 Z" fill="${darken(state.bodyColor,0.2)}" stroke="#1a1a1a" stroke-width="3"/>
-    <line x1="50" y1="-30" x2="100" y2="-15" stroke="#1a1a1a" stroke-width="4"/>
-    <line x1="50" y1="10" x2="100" y2="20" stroke="#1a1a1a" stroke-width="4"/>
-  </g>`;
-}
-function renderCraneArm(bounce) {
-  return `<g transform="translate(420,240) translate(0,${bounce})">
-    <rect x="-20" y="-10" width="40" height="20" fill="${darken(state.bodyColor,0.15)}" stroke="#1a1a1a" stroke-width="2" rx="2"/>
-    <g transform="rotate(-40)">
-      <rect x="0" y="-8" width="260" height="16" fill="${state.bodyColor}" stroke="#1a1a1a" stroke-width="2.5" rx="2"/>
-      <line x1="260" y1="0" x2="260" y2="70" stroke="#1a1a1a" stroke-width="2"/>
-      <rect x="252" y="70" width="16" height="14" fill="#888" stroke="#1a1a1a" stroke-width="1.5"/>
-    </g>
-  </g>`;
-}
-function renderDumpBed(bounce) {
-  return `<g transform="translate(0,${bounce})">
-    <path d="M 360 160 L 360 240 L 720 240 L 720 200 L 700 160 Z" fill="${darken(state.bodyColor,0.15)}" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/>
-  </g>`;
-}
-function renderMixerDrum(bounce) {
-  const rot = demo.on ? demo.t * 3 : 0;
-  return `<g transform="translate(530,200) translate(0,${bounce})">
-    <ellipse cx="0" cy="0" rx="170" ry="55" fill="${darken(state.bodyColor,0.1)}" stroke="#1a1a1a" stroke-width="3"/>
-    <g transform="rotate(${rot})">
-      ${Array.from({length:6}).map((_,i)=>`<line x1="${-160+i*60}" y1="-50" x2="${-140+i*60}" y2="50" stroke="rgba(0,0,0,.5)" stroke-width="2.5"/>`).join('')}
-    </g>
-  </g>`;
-}
-function renderTankerTank(bounce) {
-  return `<g transform="translate(540,195) translate(0,${bounce})">
-    <ellipse cx="0" cy="0" rx="170" ry="48" fill="url(#bodyGrad)" stroke="#1a1a1a" stroke-width="3"/>
-    <line x1="-150" y1="0" x2="150" y2="0" stroke="${state.subColor}" stroke-width="10"/>
-  </g>`;
-}
-function renderBusStripe(bounce) {
-  return `<rect x="95" y="210" width="610" height="10" fill="${state.subColor}" clip-path="url(#bodyClip)" transform="translate(0,${bounce})"/>`;
-}
+function renderBulldozerBlade(bounce) { return `<g transform="translate(170,260) translate(0,${bounce})"><path d="M 0 -50 Q -10 -20 0 20 L 50 25 L 50 -45 Z" fill="${darken(state.bodyColor,0.2)}" stroke="#1a1a1a" stroke-width="3"/><line x1="50" y1="-30" x2="100" y2="-15" stroke="#1a1a1a" stroke-width="4"/><line x1="50" y1="10" x2="100" y2="20" stroke="#1a1a1a" stroke-width="4"/></g>`; }
+function renderCraneArm(bounce) { return `<g transform="translate(420,240) translate(0,${bounce})"><rect x="-20" y="-10" width="40" height="20" fill="${darken(state.bodyColor,0.15)}" stroke="#1a1a1a" stroke-width="2" rx="2"/><g transform="rotate(-40)"><rect x="0" y="-8" width="260" height="16" fill="${state.bodyColor}" stroke="#1a1a1a" stroke-width="2.5" rx="2"/><line x1="260" y1="0" x2="260" y2="70" stroke="#1a1a1a" stroke-width="2"/><rect x="252" y="70" width="16" height="14" fill="#888" stroke="#1a1a1a" stroke-width="1.5"/></g></g>`; }
+function renderDumpBed(bounce) { return `<g transform="translate(0,${bounce})"><path d="M 360 160 L 360 240 L 720 240 L 720 200 L 700 160 Z" fill="${darken(state.bodyColor,0.15)}" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/></g>`; }
+function renderMixerDrum(bounce) { const rot = demo.on ? demo.t * 3 : 0; return `<g transform="translate(530,200) translate(0,${bounce})"><ellipse cx="0" cy="0" rx="170" ry="55" fill="${darken(state.bodyColor,0.1)}" stroke="#1a1a1a" stroke-width="3"/><g transform="rotate(${rot})">${Array.from({length:6}).map((_,i)=>`<line x1="${-160+i*60}" y1="-50" x2="${-140+i*60}" y2="50" stroke="rgba(0,0,0,.5)" stroke-width="2.5"/>`).join('')}</g></g>`; }
+function renderTankerTank(bounce) { return `<g transform="translate(540,195) translate(0,${bounce})"><ellipse cx="0" cy="0" rx="170" ry="48" fill="url(#bodyGrad)" stroke="#1a1a1a" stroke-width="3"/><line x1="-150" y1="0" x2="150" y2="0" stroke="${state.subColor}" stroke-width="10"/></g>`; }
+function renderBusStripe(bounce) { return `<rect x="95" y="210" width="610" height="10" fill="${state.subColor}" clip-path="url(#bodyClip)" transform="translate(0,${bounce})"/>`; }
 function renderCrawler(cx, cy) {
   const w = 130;
   let treads = '';
-  for (let i = 0; i < 16; i++) {
-    const x = cx - w/2 + i*(w/16) + (demo.on ? demo.bgOffset%8 : 0);
-    treads += `<rect x="${x}" y="${cy-10}" width="4" height="20" fill="#333"/>`;
-  }
-  return `<g>
-    <rect x="${cx-w/2-5}" y="${cy-14}" width="${w+10}" height="28" rx="14" fill="#1a1a1a"/>
-    ${treads}
-    <circle cx="${cx-w/2}" cy="${cy}" r="14" fill="#444" stroke="#1a1a1a" stroke-width="2"/>
-    <circle cx="${cx+w/2}" cy="${cy}" r="14" fill="#444" stroke="#1a1a1a" stroke-width="2"/>
-  </g>`;
+  for (let i = 0; i < 16; i++) { const x = cx - w/2 + i*(w/16) + (demo.on ? demo.bgOffset%8 : 0); treads += `<rect x="${x}" y="${cy-10}" width="4" height="20" fill="#333"/>`; }
+  return `<g><rect x="${cx-w/2-5}" y="${cy-14}" width="${w+10}" height="28" rx="14" fill="#1a1a1a"/>${treads}<circle cx="${cx-w/2}" cy="${cy}" r="14" fill="#444" stroke="#1a1a1a" stroke-width="2"/><circle cx="${cx+w/2}" cy="${cy}" r="14" fill="#444" stroke="#1a1a1a" stroke-width="2"/></g>`;
 }
 function renderWheel(w) { return `<g transform="translate(${w.x},${w.y})">${renderWheelInner(0,0,w.r,demo.on?demo.wheelAngle:0)}</g>`; }
 function renderWheelInner(cx, cy, r, ang) {
-  const s = state;
-  let inner = '';
+  const s = state; let inner = '';
   switch (s.wheelStyle) {
     case 'spoke5': inner = spokes(5, r*0.7, s.hubColor, 5); break;
     case 'mesh': inner = spokes(6, r*0.7, s.hubColor, 2) + `<circle r="${r*0.45}" fill="none" stroke="${s.hubColor}" stroke-width="2"/>`; break;
     case 'disk': inner = `<circle r="${r*0.7}" fill="${s.hubColor}"/><circle r="${r*0.5}" fill="none" stroke="#222" stroke-width="1.5"/>`; break;
-    case 'star': {
-      let pts = '';
-      for (let i = 0; i < 10; i++) {
-        const a = (i/10) * Math.PI * 2 - Math.PI/2;
-        const rr = i%2 === 0 ? r*0.75 : r*0.35;
-        pts += `${Math.cos(a)*rr},${Math.sin(a)*rr} `;
-      }
-      inner = `<polygon points="${pts}" fill="${s.hubColor}"/>`;
-      break;
-    }
-    case 'turbine':
-      inner = Array.from({length:6}).map((_,i)=>{
-        const a = (i/6) * 360;
-        return `<path d="M 0 0 Q ${r*0.4} ${r*0.3} ${r*0.75} 0 L ${r*0.65} ${-r*0.25} Q ${r*0.3} ${-r*0.1} 0 0 Z" fill="${s.hubColor}" transform="rotate(${a})"/>`;
-      }).join('');
-      break;
+    case 'star': { let pts = ''; for (let i=0;i<10;i++) { const a = (i/10)*Math.PI*2-Math.PI/2; const rr = i%2===0?r*0.75:r*0.35; pts += `${Math.cos(a)*rr},${Math.sin(a)*rr} `; } inner = `<polygon points="${pts}" fill="${s.hubColor}"/>`; break; }
+    case 'turbine': inner = Array.from({length:6}).map((_,i)=>{ const a = (i/6)*360; return `<path d="M 0 0 Q ${r*0.4} ${r*0.3} ${r*0.75} 0 L ${r*0.65} ${-r*0.25} Q ${r*0.3} ${-r*0.1} 0 0 Z" fill="${s.hubColor}" transform="rotate(${a})"/>`; }).join(''); break;
     case 'offroad': inner = `<circle r="${r*0.55}" fill="${s.hubColor}"/>` + spokes(6, r*0.5, '#1a1a1a', 4); break;
   }
-  const treadDepth = s.wheelStyle === 'offroad' ? 6 : 3;
+  const td = s.wheelStyle === 'offroad' ? 6 : 3;
   let tread = '';
-  for (let i = 0; i < 16; i++) {
-    const a = (i/16) * 360;
-    tread += `<rect x="${r-treadDepth}" y="-2" width="${treadDepth}" height="4" fill="#0f0f0f" transform="rotate(${a})"/>`;
-  }
-  return `
-    <circle cx="${cx}" cy="${cy}" r="${r}" fill="#1a1a1a"/>
-    <circle cx="${cx}" cy="${cy}" r="${r*0.85}" fill="#0a0a0a"/>
-    <g transform="translate(${cx},${cy}) rotate(${ang})">${tread}${inner}</g>
-    <circle cx="${cx}" cy="${cy}" r="${r*0.13}" fill="${s.hubColor}" stroke="#222" stroke-width="1.5"/>`;
+  for (let i = 0; i < 16; i++) { const a = (i/16)*360; tread += `<rect x="${r-td}" y="-2" width="${td}" height="4" fill="#0f0f0f" transform="rotate(${a})"/>`; }
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#1a1a1a"/><circle cx="${cx}" cy="${cy}" r="${r*0.85}" fill="#0a0a0a"/><g transform="translate(${cx},${cy}) rotate(${ang})">${tread}${inner}</g><circle cx="${cx}" cy="${cy}" r="${r*0.13}" fill="${s.hubColor}" stroke="#222" stroke-width="1.5"/>`;
 }
-function spokes(n, r, color, w) {
-  return Array.from({length:n}).map((_,i)=>{
-    const a = (i/n) * 360;
-    return `<line x1="0" y1="0" x2="0" y2="${-r}" stroke="${color}" stroke-width="${w}" stroke-linecap="round" transform="rotate(${a})"/>`;
-  }).join('');
-}
+function spokes(n, r, color, w) { return Array.from({length:n}).map((_,i)=>{ const a = (i/n)*360; return `<line x1="0" y1="0" x2="0" y2="${-r}" stroke="${color}" stroke-width="${w}" stroke-linecap="round" transform="rotate(${a})"/>`; }).join(''); }
 
-/* ===== 背景システム（6種類） ===== */
 function renderBackground() {
   const bg = state.bgType;
-  if (bg === 'road') return renderBgRoad();
   if (bg === 'city') return renderBgCity();
   if (bg === 'race') return renderBgRace();
   if (bg === 'night') return renderBgNight();
@@ -858,111 +500,106 @@ function renderBackground() {
   if (bg === 'beach') return renderBgBeach();
   return renderBgRoad();
 }
-function skyGradient(top, bottom) {
-  return `<linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${top}"/><stop offset="100%" stop-color="${bottom}"/></linearGradient>`;
-}
 function renderBgRoad() {
   const off = demo.on ? demo.bgOffset : 0;
-  const cloudX = demo.on ? (demo.t*0.5)%900 : 0;
+  const cx = demo.on ? (demo.t*0.5)%900 : 0;
   let dashes = '';
   for (let x = -80; x < 880; x += 80) dashes += `<rect x="${x+off}" y="345" width="40" height="6" fill="#fff"/>`;
-  return `<defs>${skyGradient('#87ceeb','#b8e0f0')}</defs>
-    <rect width="800" height="280" fill="url(#skyGrad)"/>
-    <ellipse cx="${100-cloudX}" cy="60" rx="40" ry="15" fill="rgba(255,255,255,.9)"/>
-    <ellipse cx="${400-cloudX}" cy="40" rx="50" ry="18" fill="rgba(255,255,255,.8)"/>
-    <ellipse cx="${100-cloudX+800}" cy="60" rx="40" ry="15" fill="rgba(255,255,255,.9)"/>
-    <ellipse cx="${400-cloudX+800}" cy="40" rx="50" ry="18" fill="rgba(255,255,255,.8)"/>
-    <rect x="0" y="240" width="800" height="40" fill="#6fa050"/>
-    <rect x="0" y="280" width="800" height="120" fill="#555"/>
-    ${dashes}`;
+  return `<rect width="800" height="280" fill="#87ceeb"/><ellipse cx="${100-cx}" cy="60" rx="40" ry="15" fill="rgba(255,255,255,.9)"/><ellipse cx="${400-cx}" cy="40" rx="50" ry="18" fill="rgba(255,255,255,.8)"/><ellipse cx="${100-cx+800}" cy="60" rx="40" ry="15" fill="rgba(255,255,255,.9)"/><ellipse cx="${400-cx+800}" cy="40" rx="50" ry="18" fill="rgba(255,255,255,.8)"/><rect x="0" y="240" width="800" height="40" fill="#6fa050"/><rect x="0" y="280" width="800" height="120" fill="#555"/>${dashes}`;
 }
 function renderBgCity() {
   const off = demo.on ? demo.bgOffset*0.7 : 0;
   let buildings = '';
-  const bs = [{x:0,w:80,h:120,c:'#4a5f7a'},{x:85,w:60,h:160,c:'#3d5066'},{x:150,w:100,h:100,c:'#5a708a'},
-              {x:255,w:70,h:180,c:'#3a4d62'},{x:330,w:90,h:130,c:'#5e7596'},{x:425,w:60,h:150,c:'#445a72'},
-              {x:490,w:110,h:170,c:'#3d5066'},{x:605,w:75,h:110,c:'#536982'},{x:685,w:90,h:160,c:'#3a4d62'}];
+  const bs = [{x:0,w:80,h:120,c:'#4a5f7a'},{x:90,w:60,h:160,c:'#3d5066'},{x:160,w:100,h:100,c:'#5a708a'},{x:270,w:70,h:180,c:'#3a4d62'},{x:350,w:90,h:130,c:'#5e7596'},{x:450,w:60,h:150,c:'#445a72'},{x:520,w:110,h:170,c:'#3d5066'},{x:640,w:75,h:110,c:'#536982'}];
   bs.forEach(b => {
-    const x = ((b.x-off) % 900 + 900) % 900 - 100;
+    const x = ((b.x-off) % 850 + 850) % 850 - 100;
     buildings += `<rect x="${x}" y="${280-b.h}" width="${b.w}" height="${b.h}" fill="${b.c}" stroke="#1a2a3a" stroke-width="1.5"/>`;
-    for (let wy=0; wy<b.h-20; wy+=20) {
-      for (let wx=0; wx<b.w-15; wx+=15) {
-        const lit = Math.random()>0.4 ? '#ffd966' : '#33445a';
-        buildings += `<rect x="${x+wx+5}" y="${290-b.h+wy+5}" width="6" height="8" fill="${lit}"/>`;
-      }
-    }
+    for (let wy=10; wy<b.h-15; wy+=18) { for (let wx=8; wx<b.w-10; wx+=14) { buildings += `<rect x="${x+wx}" y="${280-b.h+wy}" width="5" height="7" fill="${Math.random()>0.4?'#ffd966':'#33445a'}"/>`; } }
   });
   let dashes = '';
   for (let x = -80; x < 880; x += 80) dashes += `<rect x="${x+(demo.on?demo.bgOffset:0)}" y="345" width="40" height="6" fill="#fff"/>`;
-  return `<defs>${skyGradient('#ffb380','#ffd9b3')}</defs>
-    <rect width="800" height="280" fill="url(#skyGrad)"/>
-    ${buildings}
-    <rect x="0" y="280" width="800" height="120" fill="#555"/>
-    ${dashes}`;
+  return `<rect width="800" height="280" fill="#ffb380"/>${buildings}<rect x="0" y="280" width="800" height="120" fill="#555"/>${dashes}`;
 }
 function renderBgRace() {
   const off = demo.on ? demo.bgOffset*1.5 : 0;
   let flags = '';
-  for (let x = 0; x < 800; x += 60) {
-    const fx = ((x-off) % 900 + 900) % 900 - 50;
-    flags += `<polygon points="${fx},80 ${fx+30},80 ${fx+25},100 ${fx+30},120 ${fx},120" fill="${(Math.floor(x/60))%2===0?'#fff':'#1a1a1a'}" stroke="#1a1a1a" stroke-width="1"/>`;
+  for (let i = 0; i < 12; i++) {
+    const fx = ((i*70-off) % 900 + 900) % 900 - 50;
+    flags += `<rect x="${fx+5}" y="120" width="3" height="60" fill="#888"/><polygon points="${fx+8},120 ${fx+30},130 ${fx+8},140" fill="${i%2===0?'#ff0000':'#0000ff'}" stroke="#000"/>`;
   }
   let checker = '';
-  for (let x = 0; x < 800; x += 40) {
-    for (let y = 280; y < 290; y += 10) {
-      const ox = ((x+off*2) % 80) < 40 ? '#fff' : '#1a1a1a';
-      checker += `<rect x="${x+(demo.on?demo.bgOffset*2%40:0)}" y="${y}" width="40" height="10" fill="${ox}"/>`;
-    }
-  }
-  return `<defs>${skyGradient('#5dd8e8','#a0eaf0')}</defs>
-    <rect width="800" height="280" fill="url(#skyGrad)"/>
-    <rect x="0" y="180" width="800" height="100" fill="#88a058"/>
-    <rect x="0" y="170" width="800" height="3" fill="#fff"/>
-    ${flags}
-    <rect x="0" y="280" width="800" height="120" fill="#3a3a3a"/>
-    ${checker}
-    <rect x="0" y="350" width="800" height="3" fill="#fff"/>`;
+  const co = demo.on ? demo.bgOffset*2%40 : 0;
+  for (let x = -40; x < 880; x += 40) checker += `<rect x="${x+co}" y="280" width="40" height="8" fill="${(Math.floor(x/40))%2===0?'#fff':'#1a1a1a'}"/>`;
+  return `<rect width="800" height="280" fill="#5dd8e8"/><rect x="0" y="190" width="800" height="90" fill="#88a058"/><rect x="0" y="185" width="800" height="3" fill="#fff"/>${flags}<rect x="0" y="288" width="800" height="112" fill="#3a3a3a"/>${checker}<rect x="0" y="350" width="800" height="3" fill="#fff" stroke-dasharray="4 4"/>`;
 }
 function renderBgNight() {
   let stars = '';
-  for (let i = 0; i < 40; i++) {
-    const sx = (i*73 + (demo.on?demo.t*0.1:0)) % 800;
-    const sy = (i*37) % 200;
-    const tw = demo.on && (Math.floor(demo.t/10+i)%3 === 0);
+  for (let i = 0; i < 35; i++) {
+    const sx = (i*73) % 800;
+    const sy = (i*37) % 220;
+    const tw = demo.on && (Math.floor(demo.t/12+i)%3 === 0);
     stars += `<circle cx="${sx}" cy="${sy}" r="${tw?2:1}" fill="${tw?'#fff':'#ffffe0'}"/>`;
   }
-  const moon = `<circle cx="650" cy="80" r="35" fill="#fffde6"/><circle cx="655" cy="75" r="35" fill="#1a2a4a"/>`;
+  const moon = `<circle cx="650" cy="80" r="35" fill="#fffde6"/><circle cx="660" cy="72" r="32" fill="#0a1530"/>`;
   let lights = '';
-  for (let x = 50; x < 800; x += 100) {
-    lights += `<rect x="${x}" y="${260}" width="6" height="40" fill="#444"/>
-               <circle cx="${x+3}" cy="${255}" r="10" fill="#ffe680" opacity="0.9"/>
-               <ellipse cx="${x+3}" cy="${280}" rx="20" ry="40" fill="rgba(255,230,128,0.15)"/>`;
+  for (let x = 50; x < 800; x += 130) {
+    lights += `<rect x="${x}" y="240" width="5" height="40" fill="#555"/><circle cx="${x+2.5}" cy="235" r="9" fill="#ffe680"/><ellipse cx="${x+2.5}" cy="280" rx="22" ry="35" fill="rgba(255,230,128,0.2)"/>`;
   }
   let dashes = '';
   for (let x = -80; x < 880; x += 80) dashes += `<rect x="${x+(demo.on?demo.bgOffset:0)}" y="345" width="40" height="6" fill="#ffe680"/>`;
-  return `<defs>${skyGradient('#0a1530','#2a3a5a')}</defs>
-    <rect width="800" height="280" fill="url(#skyGrad)"/>
-    ${stars}${moon}${lights}
-    <rect x="0" y="280" width="800" height="120" fill="#2a2a2a"/>
-    ${dashes}`;
+  return `<rect width="800" height="280" fill="#0a1530"/>${stars}${moon}${lights}<rect x="0" y="280" width="800" height="120" fill="#2a2a2a"/>${dashes}`;
 }
 function renderBgSite() {
   const off = demo.on ? demo.bgOffset*0.5 : 0;
   let cones = '';
-  for (let x = 100; x < 800; x += 150) {
-    const cx = ((x-off) % 900 + 900) % 900 - 50;
-    cones += `<polygon points="${cx},260 ${cx-10},280 ${cx+10},280" fill="#ff6b35" stroke="#1a1a1a" stroke-width="1.5"/>
-              <rect x="${cx-7}" y="${268}" width="14" height="3" fill="#fff"/>`;
+  for (let i = 0; i < 6; i++) {
+    const cx = ((i*150-off) % 900 + 900) % 900 - 50;
+    cones += `<polygon points="${cx},260 ${cx-10},280 ${cx+10},280" fill="#ff6b35" stroke="#1a1a1a" stroke-width="1.5"/><rect x="${cx-7}" y="268" width="14" height="3" fill="#fff"/>`;
   }
-  // 工事クレーン遠景
-  const crane = `<line x1="100" y1="280" x2="100" y2="80" stroke="#ffb703" stroke-width="6"/>
-                 <line x1="100" y1="80" x2="250" y2="80" stroke="#ffb703" stroke-width="5"/>
-                 <line x1="100" y1="100" x2="200" y2="80" stroke="#ffb703" stroke-width="2"/>
-                 <line x1="200" y1="80" x2="200" y2="160" stroke="#888" stroke-width="1.5"/>
-                 <rect x="190" y="160" width="20" height="15" fill="#666" stroke="#1a1a1a"/>`;
+  const crane = `<line x1="100" y1="280" x2="100" y2="80" stroke="#ffb703" stroke-width="6"/><line x1="100" y1="80" x2="250" y2="80" stroke="#ffb703" stroke-width="5"/><line x1="200" y1="80" x2="200" y2="160" stroke="#888" stroke-width="1.5"/><rect x="190" y="160" width="20" height="15" fill="#666" stroke="#1a1a1a"/>`;
   let stripes = '';
-  for (let x = -40; x < 880; x += 80) stripes += `<rect x="${x+(demo.on?demo.bgOffset:0)}" y="280" width="40" height="10" fill="#ffd60a"/>`;
-  return `<defs>${skyGradient('#a8c5d8','#d0e0e8')}</defs>
-    <rect width="800" height="280" fill="url(#skyGrad)"/>
-    ${crane}
-    <rect x="0" y="240" width="
+  for (let x = -40; x < 880; x += 80) stripes += `<rect x="${x+(demo.on?demo.bgOffset:0)}" y="285" width="40" height="6" fill="#ffd60a"/>`;
+  return `<rect width="800" height="280" fill="#a8c5d8"/>${crane}<rect x="0" y="230" width="800" height="50" fill="#b8a080"/>${cones}<rect x="0" y="280" width="800" height="120" fill="#8b7355"/>${stripes}`;
+}
+function renderBgBeach() {
+  const cx = demo.on ? (demo.t*0.3)%900 : 0;
+  let waves = '';
+  for (let x = 0; x < 800; x += 30) {
+    const wy = 220 + Math.sin((x+(demo.on?demo.t*2:0))*0.05) * 5;
+    waves += `<path d="M ${x} ${wy} Q ${x+15} ${wy-3} ${x+30} ${wy}" fill="none" stroke="#fff" stroke-width="2"/>`;
+  }
+  let palm = `<path d="M 120 280 Q 130 200 125 130" stroke="#6b4423" stroke-width="6" fill="none"/><ellipse cx="100" cy="120" rx="40" ry="10" fill="#2a8a3a" transform="rotate(-20 100 120)"/><ellipse cx="150" cy="115" rx="40" ry="10" fill="#2a8a3a" transform="rotate(20 150 115)"/><ellipse cx="125" cy="100" rx="35" ry="10" fill="#3aa84a"/>`;
+  return `<rect width="800" height="220" fill="#5dc1e8"/><ellipse cx="${100-cx}" cy="60" rx="40" ry="15" fill="rgba(255,255,255,.95)"/><ellipse cx="${100-cx+800}" cy="60" rx="40" ry="15" fill="rgba(255,255,255,.95)"/><circle cx="700" cy="70" r="35" fill="#fff5a0"/><rect x="0" y="220" width="800" height="60" fill="#4a9fd0"/>${waves}${palm}<rect x="0" y="280" width="800" height="120" fill="#f0d090"/>`;
+}
+
+function lighten(hex, amt) { return shade(hex, amt); }
+function darken(hex, amt) { return shade(hex, -amt); }
+function shade(hex, amt) {
+  const c = hex.replace('#','');
+  const num = parseInt(c, 16);
+  let r = (num>>16) + Math.round(255*amt);
+  let g = ((num>>8)&0xff) + Math.round(255*amt);
+  let b = (num&0xff) + Math.round(255*amt);
+  r = Math.max(0,Math.min(255,r)); g = Math.max(0,Math.min(255,g)); b = Math.max(0,Math.min(255,b));
+  return '#' + ((r<<16)|(g<<8)|b).toString(16).padStart(6,'0');
+}
+function escapeHtml(t){return String(t).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);}
+
+function exportPNG() {
+  const svg = document.getElementById('stage');
+  const data = new XMLSerializer().serializeToString(svg);
+  const img = new Image();
+  img.onload = () => { const canvas = document.createElement('canvas'); canvas.width = 1600; canvas.height = 800; canvas.getContext('2d').drawImage(img, 0, 0, 1600, 800); canvas.toBlob(b => download(b, 'mytomica.png')); };
+  img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(data)));
+}
+function saveJSON() { const blob = new Blob([JSON.stringify({state, step:currentStep}, null, 2)], {type:'application/json'}); download(blob, 'mytomica.json'); }
+function loadJSON(e) { const reader = new FileReader(); reader.onload = ev => { const d = JSON.parse(ev.target.result); Object.assign(state, d.state); currentStep = d.step || 0; renderStepDots(); renderPanel(); render(); }; reader.readAsText(e.target.files[0]); }
+function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); }
+
+renderStepDots();
+renderBgBar();
+renderPanel();
+render();
+</script>
+</body>
+</html>
